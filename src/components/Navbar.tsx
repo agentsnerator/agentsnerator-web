@@ -107,7 +107,6 @@ export default function Navbar() {
                     userButtonPopoverFooter: "hidden",
                   },
                 }}
-                afterSignOutUrl="/"
               />
             </div>
           ) : (
