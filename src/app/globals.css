@@ -1,0 +1,161 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─────────────────────────────────────────────────────────
+   LIGHT MODE (default / :root)
+   ───────────────────────────────────────────────────────── */
+:root {
+  color-scheme: light;
+
+  --clr-bg:                245 245 247;
+  --clr-surface:           245 245 247;
+  --clr-surface-dim:       235 235 238;
+  --clr-surface-bright:    255 255 255;
+  --clr-sc-lowest:         255 255 255;
+  --clr-sc-low:            240 240 243;
+  --clr-sc:                234 234 237;
+  --clr-sc-high:           228 228 231;
+  --clr-sc-highest:        222 221 225;
+  --clr-surface-variant:   232 228 237;
+  --clr-on-surface:        28  27  31;
+  --clr-on-surface-variant:73  69  79;
+  --clr-on-bg:             28  27  31;
+
+  /* Primary — Purple (darker for light bg contrast) */
+  --clr-primary:           139  0 201;
+  --clr-primary-dim:       106  0 160;
+  --clr-primary-container: 243 229 255;
+  --clr-on-primary:        255 255 255;
+  --clr-on-primary-container: 45 0 80;
+  --clr-inverse-primary:   208 188 255;
+
+  /* Secondary — Cyan (deeper for light bg contrast) */
+  --clr-secondary:         0 103 129;
+  --clr-secondary-dim:     0  85 108;
+  --clr-secondary-container: 184 234 248;
+  --clr-on-secondary:      255 255 255;
+  --clr-on-secondary-container: 0 31 42;
+
+  /* Tertiary — Coral */
+  --clr-tertiary:          153  64  67;
+  --clr-tertiary-dim:      122  46  48;
+  --clr-on-tertiary:       255 255 255;
+
+  /* Error */
+  --clr-error:             186  26  26;
+  --clr-error-dim:         160  16  16;
+  --clr-error-container:   255 218 214;
+  --clr-on-error:          255 255 255;
+  --clr-on-error-container: 65  0   2;
+
+  /* Outline */
+  --clr-outline:           121 116 126;
+  --clr-outline-variant:   202 196 208;
+
+  /* Inverse */
+  --clr-inverse-surface:    49  48  51;
+  --clr-inverse-on-surface: 244 239 244;
+
+  /* Misc */
+  --glass-bg:    rgba(255, 255, 255, 0.6);
+  --navbar-bg:   rgba(245, 245, 247, 0.85);
+}
+
+/* ─────────────────────────────────────────────────────────
+   DARK MODE (.dark class on <html>)
+   ───────────────────────────────────────────────────────── */
+.dark {
+  color-scheme: dark;
+
+  --clr-bg:                14  14  16;
+  --clr-surface:           14  14  16;
+  --clr-surface-dim:       14  14  16;
+  --clr-surface-bright:    44  44  47;
+  --clr-sc-lowest:          0   0   0;
+  --clr-sc-low:            19  19  22;
+  --clr-sc:                25  25  28;
+  --clr-sc-high:           31  31  34;
+  --clr-sc-highest:        38  37  41;
+  --clr-surface-variant:   38  37  41;
+  --clr-on-surface:        255 251 254;
+  --clr-on-surface-variant:173 170 173;
+  --clr-on-bg:             255 251 254;
+
+  /* Primary — Neon Purple */
+  --clr-primary:           219 144 255;
+  --clr-primary-dim:       177  46 241;
+  --clr-primary-container: 211 123 255;
+  --clr-on-primary:         77   0 112;
+  --clr-on-primary-container: 60 0 88;
+  --clr-inverse-primary:   151   0 214;
+
+  /* Secondary — Neon Cyan */
+  --clr-secondary:           0 238 252;
+  --clr-secondary-dim:       0 222 236;
+  --clr-secondary-container: 0 105 112;
+  --clr-on-secondary:        0  83  89;
+  --clr-on-secondary-container: 227 253 255;
+
+  /* Tertiary — Coral */
+  --clr-tertiary:          255 150 147;
+  --clr-tertiary-dim:      245 119 118;
+  --clr-on-tertiary:       104  12  21;
+
+  /* Error */
+  --clr-error:             255 110 132;
+  --clr-error-dim:         215  51  87;
+  --clr-error-container:   167   1  56;
+  --clr-on-error:           73   0  19;
+  --clr-on-error-container: 255 178 185;
+
+  /* Outline */
+  --clr-outline:           118 117 120;
+  --clr-outline-variant:    72  71  74;
+
+  /* Inverse */
+  --clr-inverse-surface:   252 248 251;
+  --clr-inverse-on-surface: 86  84  87;
+
+  /* Misc */
+  --glass-bg:    rgba(19, 19, 22, 0.7);
+  --navbar-bg:   rgba(14, 14, 16, 0.8);
+}
+
+/* ─────────────────────────────────────────────────────────
+   BASE STYLES
+   ───────────────────────────────────────────────────────── */
+@layer base {
+  body {
+    background-color: rgb(var(--clr-bg));
+    color: rgb(var(--clr-on-bg));
+    overflow-x: hidden;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  ::selection {
+    background-color: rgb(var(--clr-primary));
+    color: rgb(var(--clr-on-primary));
+  }
+}
+
+/* ─────────────────────────────────────────────────────────
+   UTILITIES
+   ───────────────────────────────────────────────────────── */
+@layer utilities {
+  .glass-panel {
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  .navbar-bg {
+    background: var(--navbar-bg);
+  }
+}
+
+/* Material Symbols */
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  vertical-align: middle;
+}
