@@ -60,10 +60,15 @@ export default function ProjectDetailPage() {
     setRunning(true);
     setToast({ message: "جارٍ تشغيل المشروع...", type: "loading" });
 
+    // timeout بعد 30 ثانية
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 30_000);
+
     try {
       const res = await fetch(CEO_WEBHOOK, {
         method:  "POST",
         headers: { "Content-Type": "application/json" },
+        signal:  controller.signal,
         body:    JSON.stringify({
           project_id:   id,
           project_name: project.name,
@@ -71,25 +76,54 @@ export default function ProjectDetailPage() {
         }),
       });
 
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      clearTimeout(timer);
 
-      // محاولة قراءة الرد كـ JSON أو نص عادي
+      if (!res.ok) {
+        // حاول اقرأ body للحصول على تفاصيل الخطأ من n8n
+        let detail = "";
+        try { detail = await res.text(); } catch { /* ignore */ }
+        throw new Error(
+          detail.trim() || `الخادم أرجع HTTP ${res.status}`
+        );
+      }
+
+      // 204 No Content — نجح بدون رد
+      if (res.status === 204) {
+        setToast({ message: "تم تشغيل المشروع بنجاح ✅", type: "success" });
+        return;
+      }
+
+      // حاول قراءة الرد
       let reply = "تم تشغيل المشروع بنجاح ✅";
-      const contentType = res.headers.get("content-type") ?? "";
-      if (contentType.includes("application/json")) {
-        const data = await res.json();
-        if (data?.message) reply = data.message;
-        else if (data?.output) reply = data.output;
-        else if (typeof data === "string") reply = data;
-      } else {
-        const text = await res.text();
-        if (text.trim()) reply = text.trim();
+      const raw = await res.text();
+
+      if (raw.trim()) {
+        // حاول parse كـ JSON أولاً
+        try {
+          const data = JSON.parse(raw);
+          if (typeof data === "string") {
+            reply = data;
+          } else if (data?.message) {
+            reply = data.message;
+          } else if (data?.output) {
+            reply = data.output;
+          }
+        } catch {
+          // مو JSON — استخدم النص كما هو
+          reply = raw.trim();
+        }
       }
 
       setToast({ message: reply, type: "success" });
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "خطأ غير معروف";
-      setToast({ message: `فشل الاتصال بالـ webhook: ${msg}`, type: "error" });
+      clearTimeout(timer);
+      let msg = "خطأ غير معروف";
+      if (err instanceof DOMException && err.name === "AbortError") {
+        msg = "انتهت مهلة الاتصال (30 ثانية) — تحقق من n8n";
+      } else if (err instanceof Error) {
+        msg = err.message;
+      }
+      setToast({ message: `فشل تشغيل المشروع: ${msg}`, type: "error" });
     } finally {
       setRunning(false);
     }
