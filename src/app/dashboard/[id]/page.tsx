@@ -7,6 +7,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AgentCard, { type Agent } from "@/components/dashboard/AgentCard";
 import AddAgentModal from "@/components/dashboard/AddAgentModal";
+import RunOutputModal, { type RunOutput } from "@/components/dashboard/RunOutputModal";
 import Toast, { type ToastData } from "@/components/Toast";
 import { getProject, getProjectAgents } from "@/lib/queries";
 
@@ -33,8 +34,9 @@ export default function ProjectDetailPage() {
   const [loading, setLoading]       = useState(true);
   const [error,   setError]         = useState<string | null>(null);
   const [showAddAgent, setShowAddAgent] = useState(false);
-  const [running, setRunning]       = useState(false);
-  const [toast,   setToast]         = useState<ToastData | null>(null);
+  const [running,   setRunning]     = useState(false);
+  const [toast,     setToast]       = useState<ToastData | null>(null);
+  const [runOutput, setRunOutput]   = useState<RunOutput | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -93,28 +95,40 @@ export default function ProjectDetailPage() {
         return;
       }
 
-      // حاول قراءة الرد
-      let reply = "تم تشغيل المشروع بنجاح ✅";
+      // قراءة الرد وتحليله
       const raw = await res.text();
 
-      if (raw.trim()) {
-        // حاول parse كـ JSON أولاً
-        try {
-          const data = JSON.parse(raw);
-          if (typeof data === "string") {
-            reply = data;
-          } else if (data?.message) {
-            reply = data.message;
-          } else if (data?.output) {
-            reply = data.output;
-          }
-        } catch {
-          // مو JSON — استخدم النص كما هو
-          reply = raw.trim();
-        }
+      if (!raw.trim()) {
+        setToast({ message: "تم تشغيل المشروع بنجاح ✅", type: "success" });
+        return;
       }
 
-      setToast({ message: reply, type: "success" });
+      // استخراج title + content من الـ response
+      let title   = "";
+      let content = raw.trim();
+
+      try {
+        const data = JSON.parse(raw);
+
+        // البحث عن title
+        if (data?.title)         title = String(data.title);
+        else if (data?.headline) title = String(data.headline);
+        else if (data?.subject)  title = String(data.subject);
+
+        // البحث عن content
+        if (data?.content)      content = String(data.content);
+        else if (data?.article) content = String(data.article);
+        else if (data?.body)    content = String(data.body);
+        else if (data?.output)  content = String(data.output);
+        else if (data?.message) content = String(data.message);
+        else if (data?.text)    content = String(data.text);
+        else if (typeof data === "string") content = data;
+      } catch {
+        // مو JSON — استخدم النص كما هو
+      }
+
+      setToast({ message: "اكتمل التشغيل ✅ — شاهد النتيجة أدناه", type: "success" });
+      setRunOutput({ title, content });
     } catch (err) {
       clearTimeout(timer);
       let msg = "خطأ غير معروف";
@@ -361,6 +375,14 @@ export default function ProjectDetailPage() {
           projectId={id}
           onClose={() => setShowAddAgent(false)}
           onCreated={load}
+        />
+      )}
+
+      {runOutput && (
+        <RunOutputModal
+          output={runOutput}
+          projectName={project.name}
+          onClose={() => setRunOutput(null)}
         />
       )}
 
