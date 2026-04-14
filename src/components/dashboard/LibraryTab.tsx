@@ -1,0 +1,341 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import ReactMarkdown from "react-markdown";
+import { getLibraryItems, deleteLibraryItem } from "@/lib/queries";
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+type LibraryItem = {
+  id:           string;
+  user_id:      string;
+  project_id:   string | null;
+  title:        string | null;
+  content_type: string;
+  content:      string | null;
+  file_url:     string | null;
+  file_name:    string | null;
+  tags:         string[];
+  created_at:   string;
+};
+
+type FilterType = "all" | "text" | "image" | "video" | "file";
+
+interface Props {
+  userId: string;
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+function formatDate(iso: string): string {
+  const d = new Date(iso);
+  const dd   = String(d.getDate()).padStart(2, "0");
+  const mm   = String(d.getMonth() + 1).padStart(2, "0");
+  const yyyy = d.getFullYear();
+  return `${dd}/${mm}/${yyyy}`;
+}
+
+function getTypeIcon(contentType: string): string {
+  if (contentType === "image") return "image";
+  if (contentType === "video") return "videocam";
+  if (contentType === "file")  return "attach_file";
+  return "article";
+}
+
+function getTypeLabel(contentType: string): string {
+  if (contentType === "image") return "صورة";
+  if (contentType === "video") return "فيديو";
+  if (contentType === "file")  return "ملف";
+  return "نص";
+}
+
+function getTypeBadgeColor(contentType: string): string {
+  if (contentType === "image") return "bg-secondary/15 text-secondary";
+  if (contentType === "video") return "bg-error/15 text-error";
+  if (contentType === "file")  return "bg-primary/15 text-primary";
+  return "bg-surface-container-high text-on-surface-variant";
+}
+
+// ─── ViewModal ────────────────────────────────────────────────────────────────
+function ViewModal({ item, onClose }: { item: LibraryItem; onClose: () => void }) {
+  const [copied, setCopied] = useState(false);
+
+  function handleCopy() {
+    const text = item.title
+      ? `${item.title}\n\n${item.content ?? ""}`
+      : (item.content ?? "");
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div className="relative w-full max-w-2xl max-h-[90vh] flex flex-col bg-surface-container rounded-2xl shadow-[0_40px_80px_rgba(0,0,0,0.6)] border border-outline-variant/10">
+
+        {/* Header */}
+        <div className="flex items-start justify-between gap-4 px-6 pt-6 pb-4 border-b border-outline-variant/10 flex-shrink-0">
+          <div className="min-w-0">
+            <span className="text-[10px] font-label text-secondary uppercase tracking-widest">
+              {getTypeLabel(item.content_type)} — {formatDate(item.created_at)}
+            </span>
+            {item.title && (
+              <h2 className="font-headline text-xl font-bold text-on-surface mt-1 leading-snug">
+                {item.title}
+              </h2>
+            )}
+          </div>
+          <button
+            onClick={onClose}
+            className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-all"
+          >
+            <span className="material-symbols-outlined text-[20px]">close</span>
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto px-6 py-5">
+          {item.content ? (
+            <div className="prose prose-sm prose-invert max-w-none
+              prose-headings:font-headline prose-headings:text-on-surface prose-headings:font-bold
+              prose-h1:text-2xl prose-h2:text-xl prose-h3:text-lg
+              prose-p:text-on-surface/90 prose-p:leading-relaxed prose-p:font-body
+              prose-strong:text-primary prose-strong:font-bold
+              prose-em:text-on-surface-variant
+              prose-code:text-secondary prose-code:bg-surface-container-high prose-code:px-1 prose-code:rounded prose-code:text-xs
+              prose-pre:bg-surface-container-low prose-pre:rounded-xl prose-pre:border prose-pre:border-outline-variant/10
+              prose-ul:text-on-surface/90 prose-ol:text-on-surface/90
+              prose-li:marker:text-primary
+              prose-blockquote:border-primary/40 prose-blockquote:text-on-surface-variant
+              prose-hr:border-outline-variant/20
+              prose-a:text-secondary prose-a:no-underline hover:prose-a:underline">
+              <ReactMarkdown>{item.content}</ReactMarkdown>
+            </div>
+          ) : (
+            <p className="text-on-surface-variant font-body text-sm">لا يوجد محتوى نصي.</p>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="flex items-center justify-between gap-2 px-6 py-4 border-t border-outline-variant/10 flex-shrink-0">
+          <span className="font-label text-xs text-on-surface-variant">
+            {(item.content ?? "").length.toLocaleString()} حرف
+          </span>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleCopy}
+              className="flex items-center gap-1.5 bg-surface-container-high hover:bg-surface-bright text-on-surface px-3 py-2 rounded-lg font-headline font-bold text-xs transition-colors min-w-[90px] justify-center"
+            >
+              {copied ? (
+                <>
+                  <span className="material-symbols-outlined text-[15px] text-secondary" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                  تم النسخ ✓
+                </>
+              ) : (
+                <>
+                  <span className="material-symbols-outlined text-[15px]">content_copy</span>
+                  نسخ
+                </>
+              )}
+            </button>
+            <button
+              onClick={onClose}
+              className="bg-gradient-to-br from-primary to-primary-dim text-on-primary px-4 py-2 rounded-lg font-headline font-bold text-xs hover:shadow-[0_0_20px_rgba(219,144,255,0.3)] transition-all"
+            >
+              إغلاق
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Main Component ───────────────────────────────────────────────────────────
+export default function LibraryTab({ userId }: Props) {
+  const [items,      setItems]      = useState<LibraryItem[]>([]);
+  const [loading,    setLoading]    = useState(true);
+  const [filter,     setFilter]     = useState<FilterType>("all");
+  const [viewItem,   setViewItem]   = useState<LibraryItem | null>(null);
+  const [deleting,   setDeleting]   = useState<string | null>(null);
+
+  async function load() {
+    setLoading(true);
+    const { data } = await getLibraryItems(userId);
+    setItems(data as LibraryItem[]);
+    setLoading(false);
+  }
+
+  useEffect(() => {
+    if (userId) load();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId]);
+
+  async function handleDelete(id: string) {
+    if (!window.confirm("هل تريد حذف هذا العنصر من المكتبة؟")) return;
+    setDeleting(id);
+    await deleteLibraryItem(id);
+    setItems((prev) => prev.filter((i) => i.id !== id));
+    setDeleting(null);
+  }
+
+  // ─── Filter ────────────────────────────────────────────────────────────────
+  const filtered = items.filter((item) => {
+    if (filter === "all")   return true;
+    if (filter === "text")  return item.content_type === "text";
+    if (filter === "image") return item.content_type === "image";
+    if (filter === "video") return item.content_type === "video";
+    if (filter === "file")  return item.content_type === "file";
+    return true;
+  });
+
+  const FILTERS: { key: FilterType; label: string }[] = [
+    { key: "all",   label: "الكل"   },
+    { key: "text",  label: "نصوص"   },
+    { key: "image", label: "صور"    },
+    { key: "video", label: "فيديو"  },
+    { key: "file",  label: "ملفات"  },
+  ];
+
+  // ─── Loading skeleton ──────────────────────────────────────────────────────
+  if (loading) {
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {[1, 2, 3, 4, 5, 6].map((i) => (
+          <div key={i} className="bg-surface-container-low rounded-xl p-5 h-44 animate-pulse" />
+        ))}
+      </div>
+    );
+  }
+
+  // ─── Render ────────────────────────────────────────────────────────────────
+  return (
+    <>
+      {/* Filter tabs */}
+      <div className="flex gap-1 mb-6 bg-surface-container-low p-1 rounded-xl w-fit flex-wrap">
+        {FILTERS.map((f) => (
+          <button
+            key={f.key}
+            onClick={() => setFilter(f.key)}
+            className={`px-4 py-2 rounded-lg font-headline font-bold text-sm transition-all ${
+              filter === f.key
+                ? "bg-surface-container-high text-on-surface shadow-sm"
+                : "text-on-surface-variant hover:text-on-surface"
+            }`}
+          >
+            {f.label}
+            {f.key === "all" && (
+              <span className="ml-1.5 px-1.5 py-0.5 bg-primary/20 text-primary rounded text-[10px] font-label font-bold">
+                {items.length}
+              </span>
+            )}
+          </button>
+        ))}
+      </div>
+
+      {/* Empty state */}
+      {filtered.length === 0 && (
+        <div className="text-center py-20">
+          <div className="w-20 h-20 rounded-full bg-surface-container-high flex items-center justify-center mx-auto mb-6">
+            <span className="material-symbols-outlined text-4xl text-on-surface-variant">
+              inventory_2
+            </span>
+          </div>
+          <h3 className="font-headline text-xl font-bold mb-2">المكتبة فارغة</h3>
+          <p className="text-on-surface-variant font-body text-sm">
+            {filter === "all"
+              ? "لم تُحفظ أي عناصر في المكتبة بعد. قم بتشغيل مشروع لحفظ النتائج تلقائياً."
+              : "لا توجد عناصر من هذا النوع."}
+          </p>
+        </div>
+      )}
+
+      {/* Grid */}
+      {filtered.length > 0 && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filtered.map((item) => (
+            <div
+              key={item.id}
+              className="bg-surface-container-low rounded-xl p-5 flex flex-col gap-3 border border-outline-variant/5 hover:border-outline-variant/20 transition-all duration-200"
+            >
+              {/* Card header */}
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-9 h-9 rounded-lg bg-surface-container-high flex items-center justify-center flex-shrink-0">
+                    <span
+                      className="material-symbols-outlined text-primary text-[18px]"
+                      style={{ fontVariationSettings: "'FILL' 1" }}
+                    >
+                      {getTypeIcon(item.content_type)}
+                    </span>
+                  </div>
+                  <h3 className="font-headline font-bold text-sm text-on-surface truncate">
+                    {item.title || "بدون عنوان"}
+                  </h3>
+                </div>
+                <button
+                  onClick={() => handleDelete(item.id)}
+                  disabled={deleting === item.id}
+                  className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-lg text-error/60 hover:text-error hover:bg-error/10 transition-all disabled:opacity-40"
+                  title="حذف"
+                >
+                  {deleting === item.id ? (
+                    <span className="w-3.5 h-3.5 border-2 border-error/30 border-t-error rounded-full animate-spin" />
+                  ) : (
+                    <span className="material-symbols-outlined text-[16px]">delete</span>
+                  )}
+                </button>
+              </div>
+
+              {/* Badge + date */}
+              <div className="flex items-center justify-between gap-2">
+                <span className={`px-2 py-0.5 rounded text-[10px] font-label font-bold uppercase tracking-wider ${getTypeBadgeColor(item.content_type)}`}>
+                  {getTypeLabel(item.content_type)}
+                </span>
+                <span className="text-[10px] font-label text-on-surface-variant">
+                  {formatDate(item.created_at)}
+                </span>
+              </div>
+
+              {/* Preview (text only) */}
+              {item.content_type === "text" && item.content && (
+                <p className="text-on-surface-variant text-xs font-body leading-relaxed line-clamp-3">
+                  {item.content.slice(0, 80)}{item.content.length > 80 ? "..." : ""}
+                </p>
+              )}
+
+              {/* Tags */}
+              {Array.isArray(item.tags) && item.tags.length > 0 && (
+                <div className="flex gap-1 flex-wrap">
+                  {item.tags.slice(0, 3).map((tag) => (
+                    <span
+                      key={tag}
+                      className="px-1.5 py-0.5 bg-surface-bright text-on-surface-variant rounded text-[9px] font-label uppercase tracking-wider"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {/* View button */}
+              <button
+                onClick={() => setViewItem(item)}
+                className="mt-auto flex items-center justify-center gap-1.5 bg-surface-container-high hover:bg-surface-bright text-on-surface px-3 py-2 rounded-lg font-headline font-bold text-xs transition-colors w-full"
+              >
+                <span className="material-symbols-outlined text-[15px]">visibility</span>
+                عرض
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* View Modal */}
+      {viewItem && (
+        <ViewModal item={viewItem} onClose={() => setViewItem(null)} />
+      )}
+    </>
+  );
+}

@@ -164,6 +164,45 @@ export async function upsertProfile(
   return { error: error?.message ?? null };
 }
 
+// ─── Content Library ──────────────────────────────────────────────────────────
+
+export async function saveToLibrary(params: {
+  userId:      string;
+  projectId?:  string;
+  title?:      string;
+  contentType?: string;
+  content?:    string;
+  fileUrl?:    string;
+  fileName?:   string;
+  tags?:       string[];
+}) {
+  const { data, error } = await supabase.from("content_library").insert({
+    user_id:      params.userId,
+    project_id:   params.projectId  ?? null,
+    title:        params.title       ?? null,
+    content_type: params.contentType ?? "text",
+    content:      params.content     ?? null,
+    file_url:     params.fileUrl     ?? null,
+    file_name:    params.fileName    ?? null,
+    tags:         params.tags        ?? [],
+  }).select().single();
+  return { data, error: error?.message ?? null };
+}
+
+export async function getLibraryItems(userId: string) {
+  const { data, error } = await supabase
+    .from("content_library")
+    .select("id, user_id, project_id, title, content_type, content, file_url, file_name, tags, created_at")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false });
+  return { data: data ?? [], error: error?.message ?? null };
+}
+
+export async function deleteLibraryItem(id: string) {
+  const { error } = await supabase.from("content_library").delete().eq("id", id);
+  return { error: error?.message ?? null };
+}
+
 // ─── Insert new agent ─────────────────────────────────────────────────────────
 export async function createAgent(
   projectId: string,

@@ -1,18 +1,22 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useUser } from "@clerk/nextjs";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import DashboardStats from "@/components/dashboard/DashboardStats";
 import ProjectCard, { type Project } from "@/components/dashboard/ProjectCard";
 import NewProjectModal from "@/components/dashboard/NewProjectModal";
+import LibraryTab from "@/components/dashboard/LibraryTab";
 import { getProjects } from "@/lib/queries";
 
 export default function DashboardPage() {
+  const { user } = useUser();
   const [projects, setProjects]     = useState<Project[]>([]);
   const [loading, setLoading]       = useState(true);
   const [error, setError]           = useState<string | null>(null);
   const [showModal, setShowModal]   = useState(false);
+  const [activeTab, setActiveTab]   = useState<"projects" | "library">("projects");
 
   async function load() {
     setLoading(true);
@@ -51,7 +55,34 @@ export default function DashboardPage() {
         {/* Stats */}
         <DashboardStats totalProjects={projects.length} />
 
+        {/* Tabs */}
+        <div className="flex gap-1 mb-8 bg-surface-container-low p-1 rounded-xl w-fit">
+          {[
+            { key: "projects", label: "المشاريع", icon: "grid_view"   },
+            { key: "library",  label: "المكتبة",  icon: "inventory_2" },
+          ].map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key as "projects" | "library")}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-headline font-bold text-sm transition-all ${
+                activeTab === tab.key
+                  ? "bg-surface-container-high text-on-surface shadow-sm"
+                  : "text-on-surface-variant hover:text-on-surface"
+              }`}
+            >
+              <span className="material-symbols-outlined text-[16px]">{tab.icon}</span>
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Library Tab */}
+        {activeTab === "library" && (
+          <LibraryTab userId={user?.id ?? ""} />
+        )}
+
         {/* Projects Section */}
+        {activeTab === "projects" && (
         <section>
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
@@ -154,6 +185,7 @@ export default function DashboardPage() {
             </div>
           )}
         </section>
+        )}
 
         {/* Wallet strip */}
         <section className="mt-16 bg-surface-container-low rounded-xl p-8 flex flex-col md:flex-row items-center justify-between gap-6 border border-outline-variant/5">

@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { useUser } from "@clerk/nextjs";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AgentCard, { type Agent } from "@/components/dashboard/AgentCard";
@@ -10,7 +11,7 @@ import AddAgentModal from "@/components/dashboard/AddAgentModal";
 import RunConfigModal, { type RunConfig } from "@/components/dashboard/RunConfigModal";
 import RunOutputModal, { type RunOutput } from "@/components/dashboard/RunOutputModal";
 import Toast, { type ToastData } from "@/components/Toast";
-import { getProject, getProjectAgents } from "@/lib/queries";
+import { getProject, getProjectAgents, saveToLibrary } from "@/lib/queries";
 
 const CEO_WEBHOOK = "https://n8n.passtop.store/webhook/ceo-agent";
 
@@ -29,6 +30,7 @@ const STATUS_CONFIG = {
 
 export default function ProjectDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const { user } = useUser();
 
   const [project, setProject]       = useState<ProjectMeta | null>(null);
   const [agents,  setAgents]        = useState<Agent[]>([]);
@@ -133,6 +135,17 @@ export default function ProjectDetailPage() {
 
       setToast({ message: "اكتمل التشغيل ✅ — شاهد النتيجة أدناه", type: "success" });
       setRunOutput({ title, content });
+
+      // حفظ في المكتبة تلقائياً
+      if (user) {
+        await saveToLibrary({
+          userId:      user.id,
+          projectId:   id,
+          title:       title || content.split("\n")[0].slice(0, 100),
+          contentType: "text",
+          content,
+        });
+      }
     } catch (err) {
       clearTimeout(timer);
       let msg = "خطأ غير معروف";
