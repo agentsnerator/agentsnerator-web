@@ -20,6 +20,7 @@ type ProjectMeta = {
   description: string;
   status:      string;
   tags:        string[];
+  webhookUrl:  string | null;
 };
 
 const STATUS_CONFIG = {
@@ -72,7 +73,8 @@ export default function ProjectDetailPage() {
     const timer = setTimeout(() => controller.abort(), 30_000);
 
     try {
-      const res = await fetch(CEO_WEBHOOK, {
+      const webhookUrl = project.webhookUrl?.trim() || CEO_WEBHOOK;
+      const res = await fetch(webhookUrl, {
         method:  "POST",
         headers: { "Content-Type": "application/json" },
         signal:  controller.signal,

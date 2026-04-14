@@ -76,7 +76,7 @@ export async function getProjects(): Promise<{
 
 // ─── Fetch single project ─────────────────────────────────────────────────────
 export async function getProject(id: string): Promise<{
-  data: { name: string; description: string; status: string; tags: string[] } | null;
+  data: { name: string; description: string; status: string; tags: string[]; webhookUrl: string | null } | null;
   error: string | null;
 }> {
   const { data, error } = await supabase
@@ -92,6 +92,7 @@ export async function getProject(id: string): Promise<{
       description: data.description ?? "",
       status:      data.status ?? "active",
       tags:        Array.isArray(data.tags) ? data.tags : [],
+      webhookUrl:  data.webhook_url ?? null,
     },
     error: null,
   };
