@@ -136,12 +136,21 @@ export async function getProfile(userId: string): Promise<{
 }> {
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, username, neutrons_balance")
-    .eq("id", userId)
+    .select("clerk_id, username, neutrons_balance")
+    .eq("clerk_id", userId)
     .maybeSingle();
 
   if (error) return { data: null, error: error.message };
-  return { data: data ?? null, error: null };
+  if (!data) return { data: null, error: null };
+
+  return {
+    data: {
+      id:               data.clerk_id,
+      username:         data.username ?? "",
+      neutrons_balance: data.neutrons_balance ?? 0,
+    },
+    error: null,
+  };
 }
 
 export async function upsertProfile(
@@ -150,7 +159,7 @@ export async function upsertProfile(
 ): Promise<{ error: string | null }> {
   const { error } = await supabase
     .from("profiles")
-    .upsert({ id: userId, username }, { onConflict: "id" });
+    .upsert({ clerk_id: userId, username }, { onConflict: "clerk_id" });
 
   return { error: error?.message ?? null };
 }
