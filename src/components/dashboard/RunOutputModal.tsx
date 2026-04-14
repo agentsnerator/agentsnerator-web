@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 
 export type RunOutput = {
@@ -13,10 +14,11 @@ interface Props {
   onClose:     () => void;
 }
 
-/** تنظيف النص: إزالة = في البداية + تحويل \n literal لسطور حقيقية */
+/** تنظيف النص: إزالة = من بداية النص كله + من بداية كل سطر + تحويل \n literal */
 function cleanContent(raw: string): string {
   return raw
-    .replace(/^=+\s*/gm, "")          // احذف = أو ===... في بداية أي سطر
+    .replace(/^=+/, "")               // احذف = من بداية النص كاملاً (قبل أي شيء)
+    .replace(/^=+\s*/gm, "")          // احذف = من بداية أي سطر
     .replace(/\\n/g, "\n")             // حوّل \n literal لسطر حقيقي
     .trim();
 }
@@ -24,10 +26,13 @@ function cleanContent(raw: string): string {
 export default function RunOutputModal({ output, projectName, onClose }: Props) {
   const content = cleanContent(output.content);
   const title   = output.title.replace(/^=+\s*/, "").trim();
+  const [copied, setCopied] = useState(false);
 
   function handleCopy() {
     const text = title ? `${title}\n\n${content}` : content;
     navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   }
 
   return (
@@ -84,10 +89,19 @@ export default function RunOutputModal({ output, projectName, onClose }: Props) 
           <div className="flex gap-2">
             <button
               onClick={handleCopy}
-              className="flex items-center gap-1.5 bg-surface-container-high hover:bg-surface-bright text-on-surface px-4 py-2 rounded-lg font-headline font-bold text-xs transition-colors"
+              className="flex items-center gap-1.5 bg-surface-container-high hover:bg-surface-bright text-on-surface px-4 py-2 rounded-lg font-headline font-bold text-xs transition-colors min-w-[80px] justify-center"
             >
-              <span className="material-symbols-outlined text-[16px]">content_copy</span>
-              نسخ
+              {copied ? (
+                <>
+                  <span className="material-symbols-outlined text-[16px] text-secondary" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                  تم النسخ ✓
+                </>
+              ) : (
+                <>
+                  <span className="material-symbols-outlined text-[16px]">content_copy</span>
+                  نسخ
+                </>
+              )}
             </button>
             <button
               onClick={onClose}
