@@ -58,8 +58,8 @@ export default function DashboardPage() {
         {/* Tabs */}
         <div className="flex gap-1 mb-8 bg-surface-container-low p-1 rounded-xl w-fit">
           {[
-            { key: "projects", label: "المشاريع", icon: "grid_view"   },
-            { key: "library",  label: "المكتبة",  icon: "inventory_2" },
+            { key: "projects", label: "مشاريعي", icon: "grid_view"   },
+            { key: "library",  label: "مكتبتي",  icon: "inventory_2" },
           ].map((tab) => (
             <button
               key={tab.key}
