@@ -84,10 +84,13 @@ export default function Navbar() {
                 <span className="text-on-surface-variant font-label text-xs">NTR</span>
               </div>
 
-              {/* User greeting */}
-              <span className="hidden md:block text-on-surface-variant font-label text-sm">
+              {/* User greeting — link to profile */}
+              <Link
+                href="/profile"
+                className="hidden md:block text-on-surface-variant font-label text-sm hover:text-primary transition-colors duration-200"
+              >
                 {user.firstName ?? user.emailAddresses[0]?.emailAddress?.split("@")[0]}
-              </span>
+              </Link>
 
               {/* Clerk UserButton — handles avatar + sign-out dropdown */}
               <UserButton

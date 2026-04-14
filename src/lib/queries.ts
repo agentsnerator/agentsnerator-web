@@ -123,6 +123,38 @@ export async function createProject(name: string, description: string) {
   return { data, error: error?.message ?? null };
 }
 
+// ─── Profile ──────────────────────────────────────────────────────────────────
+export type Profile = {
+  id:               string;
+  username:         string;
+  neutrons_balance: number;
+};
+
+export async function getProfile(userId: string): Promise<{
+  data: Profile | null;
+  error: string | null;
+}> {
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("id, username, neutrons_balance")
+    .eq("id", userId)
+    .maybeSingle();
+
+  if (error) return { data: null, error: error.message };
+  return { data: data ?? null, error: null };
+}
+
+export async function upsertProfile(
+  userId: string,
+  username: string,
+): Promise<{ error: string | null }> {
+  const { error } = await supabase
+    .from("profiles")
+    .upsert({ id: userId, username }, { onConflict: "id" });
+
+  return { error: error?.message ?? null };
+}
+
 // ─── Insert new agent ─────────────────────────────────────────────────────────
 export async function createAgent(
   projectId: string,
