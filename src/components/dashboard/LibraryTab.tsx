@@ -24,6 +24,36 @@ interface Props {
   userId: string;
 }
 
+// ─── Cleaners ─────────────────────────────────────────────────────────────────
+function cleanTitle(raw: string | null): string {
+  if (!raw) return "";
+  return raw
+    .replace(/^=+\s*/gm, "")        // = أو ===== في بداية السطر
+    .replace(/^#+\s*/gm, "")        // ## عناوين Markdown
+    .replace(/\*{1,3}([^*]*)\*{1,3}/g, "$1")  // **bold** و*italic*
+    .replace(/_{1,2}([^_]*)_{1,2}/g, "$1")     // __bold__ و_italic_
+    .replace(/`([^`]*)`/g, "$1")    // `code`
+    .replace(/~~([^~]*)~~/g, "$1")  // ~~strikethrough~~
+    .replace(/\\n/g, " ")           // literal \n
+    .replace(/\s+/g, " ")           // مسافات متعددة
+    .trim();
+}
+
+function cleanPreview(raw: string | null): string {
+  if (!raw) return "";
+  return raw
+    .replace(/^=+\s*/gm, "")
+    .replace(/^#+\s*/gm, "")
+    .replace(/\*{1,3}([^*]*)\*{1,3}/g, "$1")
+    .replace(/_{1,2}([^_]*)_{1,2}/g, "$1")
+    .replace(/`{1,3}[^`]*`{1,3}/g, "")  // إزالة code blocks
+    .replace(/~~([^~]*)~~/g, "$1")
+    .replace(/\\n/g, " ")           // literal \n → مسافة
+    .replace(/\n+/g, " ")           // سطر جديد حقيقي → مسافة
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function formatDate(iso: string): string {
   const d = new Date(iso);
@@ -271,7 +301,7 @@ export default function LibraryTab({ userId }: Props) {
                     </span>
                   </div>
                   <h3 className="font-headline font-bold text-sm text-on-surface truncate">
-                    {item.title || "بدون عنوان"}
+                    {cleanTitle(item.title) || "بدون عنوان"}
                   </h3>
                 </div>
                 <button
@@ -299,11 +329,14 @@ export default function LibraryTab({ userId }: Props) {
               </div>
 
               {/* Preview (text only) */}
-              {item.content_type === "text" && item.content && (
-                <p className="text-on-surface-variant text-xs font-body leading-relaxed line-clamp-3">
-                  {item.content.slice(0, 80)}{item.content.length > 80 ? "..." : ""}
-                </p>
-              )}
+              {item.content_type === "text" && item.content && (() => {
+                const preview = cleanPreview(item.content);
+                return (
+                  <p className="text-on-surface-variant text-xs font-body leading-relaxed line-clamp-3">
+                    {preview.slice(0, 120)}{preview.length > 120 ? "..." : ""}
+                  </p>
+                );
+              })()}
 
               {/* Tags */}
               {Array.isArray(item.tags) && item.tags.length > 0 && (
