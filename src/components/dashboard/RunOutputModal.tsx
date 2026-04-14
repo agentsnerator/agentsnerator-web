@@ -1,42 +1,51 @@
 "use client";
 
+import ReactMarkdown from "react-markdown";
+
 export type RunOutput = {
   title:   string;
   content: string;
 };
 
 interface Props {
-  output:    RunOutput;
+  output:      RunOutput;
   projectName: string;
-  onClose:   () => void;
+  onClose:     () => void;
+}
+
+/** تنظيف النص: إزالة = في البداية + تحويل \n literal لسطور حقيقية */
+function cleanContent(raw: string): string {
+  return raw
+    .replace(/^=+\s*/gm, "")          // احذف = أو ===... في بداية أي سطر
+    .replace(/\\n/g, "\n")             // حوّل \n literal لسطر حقيقي
+    .trim();
 }
 
 export default function RunOutputModal({ output, projectName, onClose }: Props) {
+  const content = cleanContent(output.content);
+  const title   = output.title.replace(/^=+\s*/, "").trim();
+
   function handleCopy() {
-    const text = output.title
-      ? `${output.title}\n\n${output.content}`
-      : output.content;
+    const text = title ? `${title}\n\n${content}` : content;
     navigator.clipboard.writeText(text);
   }
 
   return (
-    /* Overlay */
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      {/* Modal */}
       <div className="relative w-full max-w-2xl max-h-[85vh] flex flex-col bg-surface-container rounded-2xl shadow-[0_40px_80px_rgba(0,0,0,0.6)] border border-outline-variant/10">
 
         {/* Header */}
         <div className="flex items-start justify-between gap-4 px-6 pt-6 pb-4 border-b border-outline-variant/10 flex-shrink-0">
-          <div>
+          <div className="min-w-0">
             <span className="text-[10px] font-label text-secondary uppercase tracking-widest">
               نتيجة التشغيل — {projectName}
             </span>
-            {output.title && (
+            {title && (
               <h2 className="font-headline text-xl font-bold text-on-surface mt-1 leading-snug">
-                {output.title}
+                {title}
               </h2>
             )}
           </div>
@@ -48,17 +57,29 @@ export default function RunOutputModal({ output, projectName, onClose }: Props) 
           </button>
         </div>
 
-        {/* Content — scrollable */}
+        {/* Content — scrollable markdown */}
         <div className="flex-1 overflow-y-auto px-6 py-5">
-          <p className="font-body text-sm text-on-surface/90 leading-relaxed whitespace-pre-wrap">
-            {output.content || "لا يوجد محتوى في الرد."}
-          </p>
+          <div className="prose prose-sm prose-invert max-w-none
+            prose-headings:font-headline prose-headings:text-on-surface prose-headings:font-bold
+            prose-h1:text-2xl prose-h2:text-xl prose-h3:text-lg
+            prose-p:text-on-surface/90 prose-p:leading-relaxed prose-p:font-body
+            prose-strong:text-primary prose-strong:font-bold
+            prose-em:text-on-surface-variant
+            prose-code:text-secondary prose-code:bg-surface-container-high prose-code:px-1 prose-code:rounded prose-code:text-xs
+            prose-pre:bg-surface-container-low prose-pre:rounded-xl prose-pre:border prose-pre:border-outline-variant/10
+            prose-ul:text-on-surface/90 prose-ol:text-on-surface/90
+            prose-li:marker:text-primary
+            prose-blockquote:border-primary/40 prose-blockquote:text-on-surface-variant
+            prose-hr:border-outline-variant/20
+            prose-a:text-secondary prose-a:no-underline hover:prose-a:underline">
+            <ReactMarkdown>{content || "لا يوجد محتوى في الرد."}</ReactMarkdown>
+          </div>
         </div>
 
         {/* Footer */}
         <div className="flex items-center justify-between gap-3 px-6 py-4 border-t border-outline-variant/10 flex-shrink-0">
           <span className="font-label text-xs text-on-surface-variant">
-            {output.content.length.toLocaleString()} حرف
+            {content.length.toLocaleString()} حرف
           </span>
           <div className="flex gap-2">
             <button
