@@ -7,6 +7,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AgentCard, { type Agent } from "@/components/dashboard/AgentCard";
 import AddAgentModal from "@/components/dashboard/AddAgentModal";
+import RunConfigModal, { type RunConfig } from "@/components/dashboard/RunConfigModal";
 import RunOutputModal, { type RunOutput } from "@/components/dashboard/RunOutputModal";
 import Toast, { type ToastData } from "@/components/Toast";
 import { getProject, getProjectAgents } from "@/lib/queries";
@@ -34,9 +35,10 @@ export default function ProjectDetailPage() {
   const [loading, setLoading]       = useState(true);
   const [error,   setError]         = useState<string | null>(null);
   const [showAddAgent, setShowAddAgent] = useState(false);
-  const [running,   setRunning]     = useState(false);
-  const [toast,     setToast]       = useState<ToastData | null>(null);
-  const [runOutput, setRunOutput]   = useState<RunOutput | null>(null);
+  const [running,       setRunning]       = useState(false);
+  const [toast,         setToast]         = useState<ToastData | null>(null);
+  const [runOutput,     setRunOutput]     = useState<RunOutput | null>(null);
+  const [showRunConfig, setShowRunConfig] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -57,8 +59,9 @@ export default function ProjectDetailPage() {
 
   useEffect(() => { load(); }, [load]);
 
-  async function handleRun() {
+  async function handleRun(config: RunConfig) {
     if (!project) return;
+    setShowRunConfig(false);
     setRunning(true);
     setToast({ message: "جارٍ تشغيل المشروع...", type: "loading" });
 
@@ -72,9 +75,10 @@ export default function ProjectDetailPage() {
         headers: { "Content-Type": "application/json" },
         signal:  controller.signal,
         body:    JSON.stringify({
-          project_id:   id,
-          project_name: project.name,
-          task:         "start",
+          task:        config.topic,
+          keyword:     config.keyword,
+          language:    config.language,
+          projectName: project.name,
         }),
       });
 
@@ -254,7 +258,7 @@ export default function ProjectDetailPage() {
               Add Agent
             </button>
             <button
-              onClick={handleRun}
+              onClick={() => setShowRunConfig(true)}
               disabled={running || project.status === "paused"}
               className="flex items-center gap-2 bg-gradient-to-br from-primary to-primary-dim text-on-primary px-6 py-3 rounded-lg font-headline font-bold text-sm active:scale-95 transition-all hover:shadow-[0_0_30px_rgba(219,144,255,0.3)] disabled:opacity-50 disabled:cursor-not-allowed"
             >
@@ -375,6 +379,14 @@ export default function ProjectDetailPage() {
           projectId={id}
           onClose={() => setShowAddAgent(false)}
           onCreated={load}
+        />
+      )}
+
+      {showRunConfig && project && (
+        <RunConfigModal
+          projectName={project.name}
+          onConfirm={handleRun}
+          onClose={() => setShowRunConfig(false)}
         />
       )}
 
