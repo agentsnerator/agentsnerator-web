@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 
 export type RunOutput = {
@@ -48,11 +48,25 @@ export default function RunOutputModal({ output, projectName, onClose }: Props) 
   const content = cleanContent(output.content);
   const title   = output.title.replace(/^=+\s*/, "").trim();
 
-  const [copied,       setCopied]       = useState(false);
-  const [copiedLink,   setCopiedLink]   = useState(false);
-  const [downloadFmt,  setDownloadFmt]  = useState<"txt" | "md">("md");
+  const [copied,      setCopied]      = useState(false);
+  const [copiedText,  setCopiedText]  = useState(false);
+  const [shareOpen,   setShareOpen]   = useState(false);
+  const [downloadFmt, setDownloadFmt] = useState<"txt" | "md">("md");
+  const shareRef = useRef<HTMLDivElement>(null);
 
-  // ── نسخ النص ──────────────────────────────────────────────────────────────
+  // إغلاق القائمة عند الضغط خارجها
+  useEffect(() => {
+    if (!shareOpen) return;
+    function handleClickOutside(e: MouseEvent) {
+      if (shareRef.current && !shareRef.current.contains(e.target as Node)) {
+        setShareOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [shareOpen]);
+
+  // ── نسخ النص (footer) ────────────────────────────────────────────────────
   function handleCopy() {
     const text = title ? `${title}\n\n${content}` : content;
     navigator.clipboard.writeText(text);
@@ -60,11 +74,35 @@ export default function RunOutputModal({ output, projectName, onClose }: Props) 
     setTimeout(() => setCopied(false), 2000);
   }
 
-  // ── نسخ الرابط الحالي ────────────────────────────────────────────────────
-  function handleCopyLink() {
-    navigator.clipboard.writeText(window.location.href);
-    setCopiedLink(true);
-    setTimeout(() => setCopiedLink(false), 2000);
+  // ── مشاركة: نسخ النص كاملاً من القائمة ───────────────────────────────────
+  function handleShareCopy() {
+    const text = title ? `${title}\n\n${content}` : content;
+    navigator.clipboard.writeText(text);
+    setCopiedText(true);
+    setTimeout(() => { setCopiedText(false); setShareOpen(false); }, 1800);
+  }
+
+  // ── مشاركة: واتساب ───────────────────────────────────────────────────────
+  function handleWhatsApp() {
+    const preview = title
+      ? `*${title}*\n\n${content.slice(0, 300)}${content.length > 300 ? "..." : ""}`
+      : content.slice(0, 400);
+    window.open(`https://wa.me/?text=${encodeURIComponent(preview)}`, "_blank", "noopener,noreferrer");
+    setShareOpen(false);
+  }
+
+  // ── مشاركة: تويتر/X ──────────────────────────────────────────────────────
+  function handleTwitter() {
+    const preview = (title ? `${title}\n\n` : "") + content.slice(0, 200);
+    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(preview)}`, "_blank", "noopener,noreferrer");
+    setShareOpen(false);
+  }
+
+  // ── مشاركة: تيليغرام ─────────────────────────────────────────────────────
+  function handleTelegram() {
+    const preview = (title ? `${title}\n\n` : "") + content.slice(0, 200);
+    window.open(`https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(preview)}`, "_blank", "noopener,noreferrer");
+    setShareOpen(false);
   }
 
   // ── تنزيل الملف ──────────────────────────────────────────────────────────
@@ -77,15 +115,6 @@ export default function RunOutputModal({ output, projectName, onClose }: Props) 
     a.download     = makeFilename(projectName, ext);
     a.click();
     URL.revokeObjectURL(url);
-  }
-
-  // ── مشاركة واتساب ────────────────────────────────────────────────────────
-  function handleWhatsApp() {
-    const preview = title
-      ? `*${title}*\n\n${content.slice(0, 300)}${content.length > 300 ? "..." : ""}`
-      : content.slice(0, 400);
-    const url = `https://wa.me/?text=${encodeURIComponent(preview)}`;
-    window.open(url, "_blank", "noopener,noreferrer");
   }
 
   return (
@@ -174,31 +203,73 @@ export default function RunOutputModal({ output, projectName, onClose }: Props) 
           {/* Row 2 — مشاركة + نسخ + إغلاق */}
           <div className="flex items-center gap-2">
 
-            {/* نسخ الرابط */}
-            <button
-              onClick={handleCopyLink}
-              title="نسخ رابط الصفحة"
-              className="flex items-center gap-1.5 bg-surface-container-high hover:bg-surface-bright text-on-surface-variant hover:text-on-surface px-3 py-2 rounded-lg font-headline font-bold text-xs transition-all min-w-[100px] justify-center"
-            >
-              <span className="material-symbols-outlined text-[15px]">
-                {copiedLink ? "check" : "link"}
-              </span>
-              {copiedLink ? "تم النسخ" : "نسخ الرابط"}
-            </button>
+            {/* ── زر المشاركة مع Dropdown ─────────────────────────────── */}
+            <div ref={shareRef} className="relative">
+              <button
+                onClick={() => setShareOpen((v) => !v)}
+                className="flex items-center gap-1.5 bg-surface-container-high hover:bg-surface-bright text-on-surface-variant hover:text-on-surface px-3 py-2 rounded-lg font-headline font-bold text-xs transition-all"
+              >
+                <span className="material-symbols-outlined text-[15px]">share</span>
+                مشاركة
+                <span className="material-symbols-outlined text-[13px]">
+                  {shareOpen ? "expand_more" : "expand_less"}
+                </span>
+              </button>
 
-            {/* واتساب */}
-            <button
-              onClick={handleWhatsApp}
-              title="مشاركة عبر واتساب"
-              className="flex items-center gap-1.5 bg-[#25D366]/10 hover:bg-[#25D366]/20 text-[#25D366] px-3 py-2 rounded-lg font-headline font-bold text-xs transition-all border border-[#25D366]/20"
-            >
-              {/* WhatsApp SVG icon */}
-              <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 fill-current">
-                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
-                <path d="M12 0C5.373 0 0 5.373 0 12c0 2.115.549 4.1 1.509 5.831L.057 23.985l6.305-1.435A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.006-1.371l-.36-.214-3.732.85.882-3.626-.235-.373A9.818 9.818 0 012.182 12C2.182 6.57 6.57 2.182 12 2.182S21.818 6.57 21.818 12 17.43 21.818 12 21.818z"/>
-              </svg>
-              واتساب
-            </button>
+              {/* القائمة — تظهر فوق الزر */}
+              {shareOpen && (
+                <div className="absolute bottom-full mb-2 left-0 w-44 bg-surface-container-high border border-outline-variant/15 rounded-xl shadow-[0_-8px_30px_rgba(0,0,0,0.4)] overflow-hidden z-10">
+
+                  {/* واتساب */}
+                  <button
+                    onClick={handleWhatsApp}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-left hover:bg-surface-bright transition-colors font-label text-sm text-on-surface"
+                  >
+                    <svg viewBox="0 0 24 24" className="w-4 h-4 fill-[#25D366] flex-shrink-0">
+                      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.115.549 4.1 1.509 5.831L.057 23.985l6.305-1.435A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.006-1.371l-.36-.214-3.732.85.882-3.626-.235-.373A9.818 9.818 0 012.182 12C2.182 6.57 6.57 2.182 12 2.182S21.818 6.57 21.818 12 17.43 21.818 12 21.818z"/>
+                    </svg>
+                    واتساب
+                  </button>
+
+                  {/* تويتر / X */}
+                  <button
+                    onClick={handleTwitter}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-left hover:bg-surface-bright transition-colors font-label text-sm text-on-surface"
+                  >
+                    <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current flex-shrink-0">
+                      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L1.254 2.25H8.08l4.253 5.622 5.912-5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                    </svg>
+                    تويتر / X
+                  </button>
+
+                  {/* تيليغرام */}
+                  <button
+                    onClick={handleTelegram}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-left hover:bg-surface-bright transition-colors font-label text-sm text-on-surface"
+                  >
+                    <svg viewBox="0 0 24 24" className="w-4 h-4 fill-[#2CA5E0] flex-shrink-0">
+                      <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
+                    </svg>
+                    تيليغرام
+                  </button>
+
+                  <div className="border-t border-outline-variant/10 mx-2" />
+
+                  {/* نسخ النص كاملاً */}
+                  <button
+                    onClick={handleShareCopy}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-left hover:bg-surface-bright transition-colors font-label text-sm text-on-surface"
+                  >
+                    <span className="material-symbols-outlined text-[16px] flex-shrink-0"
+                      style={copiedText ? { fontVariationSettings: "'FILL' 1" } : {}}>
+                      {copiedText ? "check_circle" : "content_copy"}
+                    </span>
+                    {copiedText ? "تم النسخ ✓" : "نسخ النص كاملاً"}
+                  </button>
+
+                </div>
+              )}
+            </div>
 
             <div className="flex-1" />
 
