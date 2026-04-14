@@ -24,9 +24,10 @@ type ProjectMeta = {
 };
 
 const STATUS_CONFIG = {
-  active:   { label: "Active",   dot: "bg-secondary shadow-[0_0_8px_#00eefc]", text: "text-secondary" },
-  paused:   { label: "Paused",   dot: "bg-outline",                              text: "text-on-surface-variant" },
-  building: { label: "Building", dot: "bg-primary shadow-[0_0_8px_#db90ff] animate-pulse", text: "text-primary" },
+  active:   { label: "Active",      tooltip: "فعّال",        dot: "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.7)]",       text: "text-green-400"  },
+  paused:   { label: "Paused",      tooltip: "متوقف",        dot: "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.7)]",         text: "text-red-400"    },
+  building: { label: "Building",    tooltip: "قيد الإنشاء",  dot: "bg-orange-400 shadow-[0_0_8px_rgba(251,146,60,0.7)] animate-pulse", text: "text-orange-400" },
+  coming:   { label: "Coming Soon", tooltip: "قريباً",       dot: "bg-purple-400/70",                                         text: "text-purple-400" },
 } as const;
 
 export default function ProjectDetailPage() {
@@ -205,9 +206,9 @@ export default function ProjectDetailPage() {
     );
   }
 
-  const statusKey = (project.status as keyof typeof STATUS_CONFIG) in STATUS_CONFIG
-    ? (project.status as keyof typeof STATUS_CONFIG)
-    : "active";
+  const statusKey = (project.status in STATUS_CONFIG
+    ? project.status
+    : "active") as keyof typeof STATUS_CONFIG;
   const status    = STATUS_CONFIG[statusKey];
   const ceoAgent  = agents.find((a) => a.isCEO);
   const subAgents = agents.filter((a) => !a.isCEO);
@@ -237,10 +238,14 @@ export default function ProjectDetailPage() {
               <h1 className="font-headline text-4xl md:text-5xl font-bold tracking-tight">
                 {project.name}
               </h1>
-              <span className="flex items-center gap-1.5">
+              <span className="relative group/status flex items-center gap-1.5 cursor-default">
                 <span className={`w-2 h-2 rounded-full ${status.dot}`} />
                 <span className={`text-xs font-label uppercase tracking-widest ${status.text}`}>
                   {status.label}
+                </span>
+                {/* Tooltip عند hover */}
+                <span className="absolute bottom-full left-0 mb-1.5 px-2 py-0.5 bg-surface-container-highest text-on-surface text-[10px] font-label rounded-md whitespace-nowrap opacity-0 group-hover/status:opacity-100 transition-opacity pointer-events-none shadow-lg z-10">
+                  {status.tooltip}
                 </span>
               </span>
             </div>

@@ -9,7 +9,7 @@ export type Project = {
   ceoAgent: string;
   ceoBarcode: string;
   agentCount: number;
-  status: "active" | "paused" | "building";
+  status: "active" | "paused" | "building" | "coming";
   tags: string[];
   tasksCompleted: number;
   neutronEarned: number;
@@ -17,22 +17,32 @@ export type Project = {
 
 const STATUS_CONFIG = {
   active: {
-    label: "Active",
-    dot: "bg-secondary shadow-[0_0_8px_#00eefc]",
-    text: "text-secondary",
-    border: "hover:border-secondary/20",
+    label:   "Active",
+    tooltip: "فعّال",
+    dot:     "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.7)]",
+    text:    "text-green-400",
+    border:  "hover:border-green-500/20",
   },
   paused: {
-    label: "Paused",
-    dot: "bg-outline",
-    text: "text-on-surface-variant",
-    border: "hover:border-outline/20",
+    label:   "Paused",
+    tooltip: "متوقف",
+    dot:     "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.7)]",
+    text:    "text-red-400",
+    border:  "hover:border-red-500/20",
   },
   building: {
-    label: "Building",
-    dot: "bg-primary shadow-[0_0_8px_#db90ff]",
-    text: "text-primary",
-    border: "hover:border-primary/20",
+    label:   "Building",
+    tooltip: "قيد الإنشاء",
+    dot:     "bg-orange-400 shadow-[0_0_8px_rgba(251,146,60,0.7)] animate-pulse",
+    text:    "text-orange-400",
+    border:  "hover:border-orange-400/20",
+  },
+  coming: {
+    label:   "Coming Soon",
+    tooltip: "قريباً",
+    dot:     "bg-purple-400/70",
+    text:    "text-purple-400",
+    border:  "hover:border-purple-400/20",
   },
 };
 
@@ -58,10 +68,14 @@ export default function ProjectCard({ project }: { project: Project }) {
             <h3 className="font-headline font-bold text-lg leading-tight">
               {project.name}
             </h3>
-            <div className="flex items-center gap-1.5 mt-0.5">
+            <div className="relative group/status flex items-center gap-1.5 mt-0.5 cursor-default">
               <span className={`w-1.5 h-1.5 rounded-full ${status.dot}`} />
               <span className={`text-[10px] font-label uppercase tracking-widest ${status.text}`}>
                 {status.label}
+              </span>
+              {/* Tooltip عند hover */}
+              <span className="absolute bottom-full left-0 mb-1.5 px-2 py-0.5 bg-surface-container-highest text-on-surface text-[10px] font-label rounded-md whitespace-nowrap opacity-0 group-hover/status:opacity-100 transition-opacity pointer-events-none shadow-lg z-10">
+                {status.tooltip}
               </span>
             </div>
           </div>

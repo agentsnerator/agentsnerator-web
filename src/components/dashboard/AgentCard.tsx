@@ -52,10 +52,10 @@ function getScoreTier(score: number): ScoreTier {
   };
 }
 
-const STATUS_DOT: Record<Agent["status"], string> = {
-  active:   "bg-secondary shadow-[0_0_6px_#00eefc]",
-  idle:     "bg-outline",
-  training: "bg-primary shadow-[0_0_6px_#db90ff] animate-pulse",
+const STATUS_CONFIG: Record<Agent["status"], { dot: string; tooltip: string }> = {
+  active:   { dot: "bg-green-500 shadow-[0_0_6px_rgba(34,197,94,0.8)]",           tooltip: "فعّال"   },
+  idle:     { dot: "bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.8)]",             tooltip: "متوقف"  },
+  training: { dot: "bg-orange-400 shadow-[0_0_6px_rgba(251,146,60,0.8)] animate-pulse", tooltip: "تدريب" },
 };
 
 const CIRCUMFERENCE = 2 * Math.PI * 28; // r=28
@@ -102,10 +102,15 @@ export default function AgentCard({
             >
               {agent.avatarIcon}
             </span>
-            {/* Status dot */}
-            <span
-              className={`absolute -bottom-1 -right-1 w-3 h-3 rounded-full border-2 border-surface-container-low ${STATUS_DOT[agent.status]}`}
-            />
+            {/* Status dot + tooltip */}
+            <span className="absolute -bottom-1 -right-1 group/dot">
+              <span
+                className={`block w-3 h-3 rounded-full border-2 border-surface-container-low ${STATUS_CONFIG[agent.status].dot}`}
+              />
+              <span className="absolute bottom-full right-0 mb-1.5 px-2 py-0.5 bg-surface-container-highest text-on-surface text-[10px] font-label rounded-md whitespace-nowrap opacity-0 group-hover/dot:opacity-100 transition-opacity pointer-events-none shadow-lg z-10">
+                {STATUS_CONFIG[agent.status].tooltip}
+              </span>
+            </span>
           </div>
 
           {/* Score circle */}
