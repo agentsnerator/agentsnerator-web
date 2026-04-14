@@ -13,8 +13,8 @@
   </defs>
   <rect x="0" y="0" width="76" height="76" rx="16" fill="#080c14"/>
   <rect x="0" y="0" width="76" height="76" rx="16" fill="url(#grid)" opacity="0.12" clip-path="url(#clip)"/>
-  <ellipse cx="38" cy="38" rx="26" ry="16" transform="rotate(15, 38, 38)" fill="url(#g)" opacity="0.08"/>
-  <ellipse cx="38" cy="38" rx="22" ry="13" transform="rotate(15, 38, 38)" fill="#080c14"/>
-  <ellipse cx="38" cy="38" rx="22" ry="13" transform="rotate(15, 38, 38)" fill="none" stroke="url(#g)" stroke-width="1.8"/>
+  <ellipse cx="38" cy="38" rx="26" ry="16" transform="rotate(-15, 38, 38)" fill="url(#g)" opacity="0.08"/>
+  <ellipse cx="38" cy="38" rx="22" ry="13" transform="rotate(-15, 38, 38)" fill="#080c14"/>
+  <ellipse cx="38" cy="38" rx="22" ry="13" transform="rotate(-15, 38, 38)" fill="none" stroke="url(#g)" stroke-width="1.8"/>
   <path d="M34 31 L34 45 L46 38 Z" fill="url(#g)"/>
 </svg>

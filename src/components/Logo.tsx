@@ -42,11 +42,11 @@ export default function Logo({ className, width = 360, height = 80 }: LogoProps)
       />
 
       {/* توهج خلف البيضاوي */}
-      <ellipse cx="38" cy="38" rx="26" ry="16" transform="rotate(15, 38, 38)" fill="url(#logo-g)" opacity="0.08" />
+      <ellipse cx="38" cy="38" rx="26" ry="16" transform="rotate(-15, 38, 38)" fill="url(#logo-g)" opacity="0.08" />
 
       {/* البيضاوي المائل — حد بتدرج */}
-      <ellipse cx="38" cy="38" rx="22" ry="13" transform="rotate(15, 38, 38)" fill="#080c14" />
-      <ellipse cx="38" cy="38" rx="22" ry="13" transform="rotate(15, 38, 38)" fill="none" stroke="url(#logo-g)" strokeWidth="1.8" />
+      <ellipse cx="38" cy="38" rx="22" ry="13" transform="rotate(-15, 38, 38)" fill="#080c14" />
+      <ellipse cx="38" cy="38" rx="22" ry="13" transform="rotate(-15, 38, 38)" fill="none" stroke="url(#logo-g)" strokeWidth="1.8" />
 
       {/* زر التشغيل ▶ */}
       <path d="M34 31 L34 45 L46 38 Z" fill="url(#logo-g)" />
