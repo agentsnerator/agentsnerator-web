@@ -126,7 +126,25 @@ function ViewModal({ item, onClose }: { item: LibraryItem; onClose: () => void }
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto px-6 py-5">
-          {item.content ? (
+          {item.content_type === "image" ? (
+            /* ── عرض الصورة ─────────────────────────────────────────────── */
+            item.file_url ? (
+              <div className="flex flex-col items-center gap-3">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={item.file_url}
+                  alt={item.title || "preview"}
+                  className="max-w-full max-h-[70vh] object-contain mx-auto rounded-xl border border-outline-variant/10"
+                />
+                <p className="text-[10px] font-label text-on-surface-variant/60 text-center">
+                  صورة مولّدة بالذكاء الاصطناعي
+                </p>
+              </div>
+            ) : (
+              <p className="text-on-surface-variant font-body text-sm">لا يوجد رابط للصورة.</p>
+            )
+          ) : item.content ? (
+            /* ── عرض النص ───────────────────────────────────────────────── */
             <div className="prose prose-sm prose-invert max-w-none
               prose-headings:font-headline prose-headings:text-on-surface prose-headings:font-bold
               prose-h1:text-2xl prose-h2:text-xl prose-h3:text-lg
@@ -143,14 +161,14 @@ function ViewModal({ item, onClose }: { item: LibraryItem; onClose: () => void }
               <ReactMarkdown>{item.content}</ReactMarkdown>
             </div>
           ) : (
-            <p className="text-on-surface-variant font-body text-sm">لا يوجد محتوى نصي.</p>
+            <p className="text-on-surface-variant font-body text-sm">لا يوجد محتوى.</p>
           )}
         </div>
 
         {/* Footer */}
         <div className="flex items-center justify-between gap-2 px-6 py-4 border-t border-outline-variant/10 flex-shrink-0">
           <span className="font-label text-xs text-on-surface-variant">
-            {(item.content ?? "").length.toLocaleString()} حرف
+            {item.content_type === "image" ? "صورة" : `${(item.content ?? "").length.toLocaleString()} حرف`}
           </span>
           <div className="flex items-center gap-2">
             <button
