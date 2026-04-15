@@ -4,8 +4,9 @@ import { useState, useRef, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 
 export type RunOutput = {
-  title:   string;
-  content: string;
+  title:    string;
+  content:  string;
+  imageUrl?: string;   // إذا الرد صورة
 };
 
 interface Props {
@@ -45,6 +46,7 @@ function makeFilename(projectName: string, ext: "txt" | "md"): string {
 }
 
 export default function RunOutputModal({ output, projectName, onClose }: Props) {
+  const isImage = Boolean(output.imageUrl);
   const content = cleanContent(output.content);
   const title   = output.title.replace(/^=+\s*/, "").trim();
 
@@ -52,6 +54,7 @@ export default function RunOutputModal({ output, projectName, onClose }: Props) 
   const [copiedText,  setCopiedText]  = useState(false);
   const [shareOpen,   setShareOpen]   = useState(false);
   const [downloadFmt, setDownloadFmt] = useState<"txt" | "md">("md");
+  const [imgLoaded,   setImgLoaded]   = useState(false);
   const shareRef = useRef<HTMLDivElement>(null);
 
   // إغلاق القائمة عند الضغط خارجها
@@ -66,9 +69,11 @@ export default function RunOutputModal({ output, projectName, onClose }: Props) 
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [shareOpen]);
 
-  // ── نسخ النص (footer) ────────────────────────────────────────────────────
+  // ── نسخ النص أو الرابط (footer) ─────────────────────────────────────────
   function handleCopy() {
-    const text = title ? `${title}\n\n${content}` : content;
+    const text = isImage
+      ? (output.imageUrl ?? "")
+      : (title ? `${title}\n\n${content}` : content);
     navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -146,21 +151,47 @@ export default function RunOutputModal({ output, projectName, onClose }: Props) 
 
         {/* ── Content ─────────────────────────────────────────────────────── */}
         <div className="flex-1 overflow-y-auto px-6 py-5">
-          <div className="prose prose-sm prose-invert max-w-none
-            prose-headings:font-headline prose-headings:text-on-surface prose-headings:font-bold
-            prose-h1:text-2xl prose-h2:text-xl prose-h3:text-lg
-            prose-p:text-on-surface/90 prose-p:leading-relaxed prose-p:font-body
-            prose-strong:text-primary prose-strong:font-bold
-            prose-em:text-on-surface-variant
-            prose-code:text-secondary prose-code:bg-surface-container-high prose-code:px-1 prose-code:rounded prose-code:text-xs
-            prose-pre:bg-surface-container-low prose-pre:rounded-xl prose-pre:border prose-pre:border-outline-variant/10
-            prose-ul:text-on-surface/90 prose-ol:text-on-surface/90
-            prose-li:marker:text-primary
-            prose-blockquote:border-primary/40 prose-blockquote:text-on-surface-variant
-            prose-hr:border-outline-variant/20
-            prose-a:text-secondary prose-a:no-underline hover:prose-a:underline">
-            <ReactMarkdown>{content || "لا يوجد محتوى في الرد."}</ReactMarkdown>
-          </div>
+          {isImage ? (
+            /* ── وضع الصورة ─────────────────────────────────────────────── */
+            <div className="flex flex-col items-center gap-3">
+              {!imgLoaded && (
+                <div className="w-full h-64 bg-surface-container-low rounded-xl animate-pulse flex items-center justify-center">
+                  <span className="material-symbols-outlined text-4xl text-on-surface-variant animate-spin">
+                    progress_activity
+                  </span>
+                </div>
+              )}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={output.imageUrl}
+                alt={title || "Generated Image"}
+                onLoad={() => setImgLoaded(true)}
+                className={`w-full max-h-[55vh] object-contain rounded-xl border border-outline-variant/10 transition-opacity duration-300 ${imgLoaded ? "opacity-100" : "opacity-0 absolute"}`}
+              />
+              {imgLoaded && output.imageUrl && (
+                <p className="text-[10px] font-mono text-on-surface-variant/40 break-all text-center px-2">
+                  {output.imageUrl}
+                </p>
+              )}
+            </div>
+          ) : (
+            /* ── وضع النص ───────────────────────────────────────────────── */
+            <div className="prose prose-sm prose-invert max-w-none
+              prose-headings:font-headline prose-headings:text-on-surface prose-headings:font-bold
+              prose-h1:text-2xl prose-h2:text-xl prose-h3:text-lg
+              prose-p:text-on-surface/90 prose-p:leading-relaxed prose-p:font-body
+              prose-strong:text-primary prose-strong:font-bold
+              prose-em:text-on-surface-variant
+              prose-code:text-secondary prose-code:bg-surface-container-high prose-code:px-1 prose-code:rounded prose-code:text-xs
+              prose-pre:bg-surface-container-low prose-pre:rounded-xl prose-pre:border prose-pre:border-outline-variant/10
+              prose-ul:text-on-surface/90 prose-ol:text-on-surface/90
+              prose-li:marker:text-primary
+              prose-blockquote:border-primary/40 prose-blockquote:text-on-surface-variant
+              prose-hr:border-outline-variant/20
+              prose-a:text-secondary prose-a:no-underline hover:prose-a:underline">
+              <ReactMarkdown>{content || "لا يوجد محتوى في الرد."}</ReactMarkdown>
+            </div>
+          )}
         </div>
 
         {/* ── Footer ──────────────────────────────────────────────────────── */}
@@ -169,35 +200,48 @@ export default function RunOutputModal({ output, projectName, onClose }: Props) 
           {/* Row 1 — عداد + تنزيل */}
           <div className="flex items-center justify-between gap-2">
             <span className="font-label text-xs text-on-surface-variant">
-              {content.length.toLocaleString()} حرف
+              {isImage ? "صورة مُولَّدة" : `${content.length.toLocaleString()} حرف`}
             </span>
 
-            {/* تنزيل */}
-            <div className="flex items-center gap-1">
-              {/* اختيار الصيغة */}
-              <div className="flex rounded-lg overflow-hidden ring-1 ring-white/10">
-                {(["md", "txt"] as const).map((fmt) => (
-                  <button
-                    key={fmt}
-                    onClick={() => setDownloadFmt(fmt)}
-                    className={`px-2.5 py-1.5 font-label text-xs transition-colors ${
-                      downloadFmt === fmt
-                        ? "bg-primary/20 text-primary font-bold"
-                        : "text-on-surface-variant hover:text-on-surface"
-                    }`}
-                  >
-                    .{fmt}
-                  </button>
-                ))}
-              </div>
-              <button
-                onClick={() => handleDownload(downloadFmt)}
+            {isImage ? (
+              /* تنزيل الصورة */
+              <a
+                href={output.imageUrl}
+                download
+                target="_blank"
+                rel="noopener noreferrer"
                 className="flex items-center gap-1.5 bg-surface-container-high hover:bg-surface-bright text-on-surface px-3 py-1.5 rounded-lg font-headline font-bold text-xs transition-colors"
               >
                 <span className="material-symbols-outlined text-[15px]">download</span>
-                تنزيل
-              </button>
-            </div>
+                تنزيل الصورة
+              </a>
+            ) : (
+              /* تنزيل النص */
+              <div className="flex items-center gap-1">
+                <div className="flex rounded-lg overflow-hidden ring-1 ring-white/10">
+                  {(["md", "txt"] as const).map((fmt) => (
+                    <button
+                      key={fmt}
+                      onClick={() => setDownloadFmt(fmt)}
+                      className={`px-2.5 py-1.5 font-label text-xs transition-colors ${
+                        downloadFmt === fmt
+                          ? "bg-primary/20 text-primary font-bold"
+                          : "text-on-surface-variant hover:text-on-surface"
+                      }`}
+                    >
+                      .{fmt}
+                    </button>
+                  ))}
+                </div>
+                <button
+                  onClick={() => handleDownload(downloadFmt)}
+                  className="flex items-center gap-1.5 bg-surface-container-high hover:bg-surface-bright text-on-surface px-3 py-1.5 rounded-lg font-headline font-bold text-xs transition-colors"
+                >
+                  <span className="material-symbols-outlined text-[15px]">download</span>
+                  تنزيل
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Row 2 — مشاركة + نسخ + إغلاق */}
@@ -273,7 +317,7 @@ export default function RunOutputModal({ output, projectName, onClose }: Props) 
 
             <div className="flex-1" />
 
-            {/* نسخ النص */}
+            {/* نسخ النص / الرابط */}
             <button
               onClick={handleCopy}
               className="flex items-center gap-1.5 bg-surface-container-high hover:bg-surface-bright text-on-surface px-3 py-2 rounded-lg font-headline font-bold text-xs transition-colors min-w-[90px] justify-center"
@@ -286,7 +330,7 @@ export default function RunOutputModal({ output, projectName, onClose }: Props) 
               ) : (
                 <>
                   <span className="material-symbols-outlined text-[15px]">content_copy</span>
-                  نسخ
+                  {isImage ? "نسخ الرابط" : "نسخ"}
                 </>
               )}
             </button>

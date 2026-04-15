@@ -112,9 +112,14 @@ export default function ProjectDetailPage() {
         return;
       }
 
-      // استخراج title + content من الـ response
-      let title   = "";
-      let content = raw.trim();
+      // استخراج title + content + imageUrl من الـ response
+      let title    = "";
+      let content  = raw.trim();
+      let imageUrl = "";
+
+      function looksLikeImage(url: string) {
+        return /\.(png|jpg|jpeg|webp|gif|svg)(\?.*)?$/i.test(url);
+      }
 
       try {
         const data = JSON.parse(raw);
@@ -124,30 +129,51 @@ export default function ProjectDetailPage() {
         else if (data?.headline) title = String(data.headline);
         else if (data?.subject)  title = String(data.subject);
 
-        // البحث عن content
-        if (data?.content)      content = String(data.content);
-        else if (data?.article) content = String(data.article);
-        else if (data?.body)    content = String(data.body);
-        else if (data?.output)  content = String(data.output);
-        else if (data?.message) content = String(data.message);
-        else if (data?.text)    content = String(data.text);
-        else if (typeof data === "string") content = data;
+        // البحث عن image_url
+        if (data?.image_url && looksLikeImage(String(data.image_url))) {
+          imageUrl = String(data.image_url);
+        } else if (data?.image && looksLikeImage(String(data.image))) {
+          imageUrl = String(data.image);
+        } else if (data?.url && looksLikeImage(String(data.url))) {
+          imageUrl = String(data.url);
+        }
+
+        // البحث عن content (إذا ما في صورة)
+        if (!imageUrl) {
+          if (data?.content)      content = String(data.content);
+          else if (data?.article) content = String(data.article);
+          else if (data?.body)    content = String(data.body);
+          else if (data?.output)  content = String(data.output);
+          else if (data?.message) content = String(data.message);
+          else if (data?.text)    content = String(data.text);
+          else if (typeof data === "string") content = data;
+        }
       } catch {
         // مو JSON — استخدم النص كما هو
       }
 
       setToast({ message: "اكتمل التشغيل ✅ — شاهد النتيجة أدناه", type: "success" });
-      setRunOutput({ title, content });
+      setRunOutput({ title, content, imageUrl: imageUrl || undefined });
 
       // حفظ في المكتبة تلقائياً
       if (user) {
-        await saveToLibrary({
-          userId:      user.id,
-          projectId:   id,
-          title:       title || content.split("\n")[0].slice(0, 100),
-          contentType: "text",
-          content,
-        });
+        if (imageUrl) {
+          await saveToLibrary({
+            userId:      user.id,
+            projectId:   id,
+            title:       title || "Generated Image",
+            contentType: "image",
+            fileUrl:     imageUrl,
+          });
+        } else {
+          await saveToLibrary({
+            userId:      user.id,
+            projectId:   id,
+            title:       title || content.split("\n")[0].slice(0, 100),
+            contentType: "text",
+            content,
+          });
+        }
       }
     } catch (err) {
       clearTimeout(timer);
