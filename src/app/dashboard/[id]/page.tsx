@@ -107,6 +107,11 @@ export default function ProjectDetailPage() {
       // قراءة الرد وتحليله
       const raw = await res.text();
 
+      // ── DEBUG مؤقت ────────────────────────────────────────────────────────
+      console.log('RAW RESPONSE:', raw);
+      try { console.log('PARSED:', JSON.parse(raw)); } catch { console.log('NOT JSON'); }
+      // ──────────────────────────────────────────────────────────────────────
+
       if (!raw.trim()) {
         setToast({ message: "تم تشغيل المشروع بنجاح ✅", type: "success" });
         return;
