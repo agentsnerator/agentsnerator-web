@@ -112,6 +112,16 @@ export default function ProjectDetailPage() {
       try { console.log('PARSED:', JSON.parse(raw)); } catch { console.log('NOT JSON'); }
       // ──────────────────────────────────────────────────────────────────────
 
+      // محاولة استخراج image_url من أي نص حتى لو مو JSON نظيف
+      const imageMatch = raw.match(/"image_url"\s*:\s*"([^"]+)"/);
+      if (imageMatch) {
+        const imageUrl = imageMatch[1];
+        setToast({ message: "اكتملت توليد الصورة ✅", type: "success" });
+        setRunOutput({ title: "", content: "", imageUrl });
+        if (user) await saveToLibrary({ userId: user.id, projectId: id, title: "Generated Image", contentType: "image", fileUrl: imageUrl });
+        return;
+      }
+
       if (!raw.trim()) {
         setToast({ message: "تم تشغيل المشروع بنجاح ✅", type: "success" });
         return;
