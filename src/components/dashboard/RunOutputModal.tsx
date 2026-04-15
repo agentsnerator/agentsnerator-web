@@ -168,9 +168,9 @@ export default function RunOutputModal({ output, projectName, onClose }: Props) 
                 onLoad={() => setImgLoaded(true)}
                 className={`w-full max-h-[55vh] object-contain rounded-xl border border-outline-variant/10 transition-opacity duration-300 ${imgLoaded ? "opacity-100" : "opacity-0 absolute"}`}
               />
-              {imgLoaded && output.imageUrl && (
-                <p className="text-[10px] font-mono text-on-surface-variant/40 break-all text-center px-2">
-                  {output.imageUrl}
+              {imgLoaded && (
+                <p className="text-[10px] font-label text-on-surface-variant/60 text-center">
+                  صورة مولّدة بالذكاء الاصطناعي
                 </p>
               )}
             </div>
