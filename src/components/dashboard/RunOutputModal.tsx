@@ -4,9 +4,9 @@ import { useState, useRef, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 
 export type RunOutput = {
-  title:    string;
-  content:  string;
-  imageUrl?: string;   // إذا الرد صورة
+  title?:   string;
+  content?: string;
+  imageUrl?: string;
 };
 
 interface Props {
@@ -47,8 +47,8 @@ function makeFilename(projectName: string, ext: "txt" | "md"): string {
 
 export default function RunOutputModal({ output, projectName, onClose }: Props) {
   const isImage = Boolean(output.imageUrl);
-  const content = cleanContent(output.content);
-  const title   = output.title.replace(/^=+\s*/, "").trim();
+  const content = cleanContent(output.content ?? "");
+  const title   = (output.title ?? "").replace(/^=+\s*/, "").trim();
 
   const [copied,      setCopied]      = useState(false);
   const [copiedText,  setCopiedText]  = useState(false);

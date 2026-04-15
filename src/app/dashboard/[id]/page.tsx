@@ -112,60 +112,52 @@ export default function ProjectDetailPage() {
         return;
       }
 
-      // استخراج title + content + imageUrl من الـ response
-      let title    = "";
-      let content  = raw.trim();
-      let imageUrl = "";
-
-      function looksLikeImage(url: string) {
-        return /\.(png|jpg|jpeg|webp|gif|svg)(\?.*)?$/i.test(url);
-      }
-
+      // ── محاولة JSON parse أولاً ──────────────────────────────────────────
       try {
-        const data = JSON.parse(raw);
+        const parsed = JSON.parse(raw);
 
-        // البحث عن title
-        if (data?.title)         title = String(data.title);
-        else if (data?.headline) title = String(data.headline);
-        else if (data?.subject)  title = String(data.subject);
+        // إذا الرد يحتوي image_url — نعرضها مباشرة بدون أي شرط امتداد
+        const maybeImg: string =
+          parsed?.image_url || parsed?.image || parsed?.output_url || "";
 
-        // البحث عن image_url
-        if (data?.image_url && looksLikeImage(String(data.image_url))) {
-          imageUrl = String(data.image_url);
-        } else if (data?.image && looksLikeImage(String(data.image))) {
-          imageUrl = String(data.image);
-        } else if (data?.url && looksLikeImage(String(data.url))) {
-          imageUrl = String(data.url);
-        }
-
-        // البحث عن content (إذا ما في صورة)
-        if (!imageUrl) {
-          if (data?.content)      content = String(data.content);
-          else if (data?.article) content = String(data.article);
-          else if (data?.body)    content = String(data.body);
-          else if (data?.output)  content = String(data.output);
-          else if (data?.message) content = String(data.message);
-          else if (data?.text)    content = String(data.text);
-          else if (typeof data === "string") content = data;
-        }
-      } catch {
-        // مو JSON — استخدم النص كما هو
-      }
-
-      setToast({ message: "اكتمل التشغيل ✅ — شاهد النتيجة أدناه", type: "success" });
-      setRunOutput({ title, content, imageUrl: imageUrl || undefined });
-
-      // حفظ في المكتبة تلقائياً
-      if (user) {
-        if (imageUrl) {
-          await saveToLibrary({
-            userId:      user.id,
-            projectId:   id,
-            title:       title || "Generated Image",
-            contentType: "image",
-            fileUrl:     imageUrl,
+        if (maybeImg) {
+          setToast({ message: "اكتملت توليد الصورة ✅", type: "success" });
+          setRunOutput({
+            title:    parsed?.title || parsed?.prompt || "",
+            content:  "",
+            imageUrl: maybeImg,
           });
-        } else {
+          if (user) {
+            await saveToLibrary({
+              userId:      user.id,
+              projectId:   id,
+              title:       parsed?.title || parsed?.prompt || "Generated Image",
+              contentType: "image",
+              fileUrl:     maybeImg,
+            });
+          }
+          return;
+        }
+
+        // رد نصي — استخرج title + content
+        let title   = "";
+        let content = raw.trim();
+
+        if (parsed?.title)         title = String(parsed.title);
+        else if (parsed?.headline) title = String(parsed.headline);
+        else if (parsed?.subject)  title = String(parsed.subject);
+
+        if (parsed?.content)      content = String(parsed.content);
+        else if (parsed?.article) content = String(parsed.article);
+        else if (parsed?.body)    content = String(parsed.body);
+        else if (parsed?.output)  content = String(parsed.output);
+        else if (parsed?.message) content = String(parsed.message);
+        else if (parsed?.text)    content = String(parsed.text);
+        else if (typeof parsed === "string") content = parsed;
+
+        setToast({ message: "اكتمل التشغيل ✅ — شاهد النتيجة أدناه", type: "success" });
+        setRunOutput({ title, content });
+        if (user) {
           await saveToLibrary({
             userId:      user.id,
             projectId:   id,
@@ -174,6 +166,22 @@ export default function ProjectDetailPage() {
             content,
           });
         }
+        return;
+      } catch {
+        // مو JSON — استخدم النص الخام
+      }
+
+      // ── نص خام (مو JSON) ──────────────────────────────────────────────────
+      setToast({ message: "اكتمل التشغيل ✅ — شاهد النتيجة أدناه", type: "success" });
+      setRunOutput({ title: "", content: raw.trim() });
+      if (user) {
+        await saveToLibrary({
+          userId:      user.id,
+          projectId:   id,
+          title:       raw.trim().split("\n")[0].slice(0, 100),
+          contentType: "text",
+          content:     raw.trim(),
+        });
       }
     } catch (err) {
       clearTimeout(timer);
