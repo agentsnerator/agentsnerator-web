@@ -74,17 +74,32 @@ export default function ProjectDetailPage() {
     const timer = setTimeout(() => controller.abort(), 30_000);
 
     try {
-      const webhookUrl = project.webhookUrl?.trim() || CEO_WEBHOOK;
+      const webhookUrl  = project.webhookUrl?.trim() || CEO_WEBHOOK;
+      const isSocial    = webhookUrl.includes("social-agent");
+
+      const bodyPayload = isSocial ? {
+        client_name:       config.client_name,
+        brand_description: config.brand_description,
+        platform:          config.platform,
+        occasion:          config.occasion,
+        language:          config.language,
+        tone:              config.tone,
+        industry:          config.industry,
+        post_count:        config.post_count,
+        extra_info:        config.extra_info,
+        projectName:       project.name,
+      } : {
+        task:        config.topic,
+        keyword:     config.keyword,
+        language:    config.language,
+        projectName: project.name,
+      };
+
       const res = await fetch(webhookUrl, {
         method:  "POST",
         headers: { "Content-Type": "application/json" },
         signal:  controller.signal,
-        body:    JSON.stringify({
-          task:        config.topic,
-          keyword:     config.keyword,
-          language:    config.language,
-          projectName: project.name,
-        }),
+        body:    JSON.stringify(bodyPayload),
       });
 
       clearTimeout(timer);
@@ -162,7 +177,10 @@ export default function ProjectDetailPage() {
         else if (parsed?.headline) title = String(parsed.headline);
         else if (parsed?.subject)  title = String(parsed.subject);
 
-        if (parsed?.content)      content = String(parsed.content);
+        // posts array من Social Media Agent
+        if (Array.isArray(parsed?.posts) && parsed.posts.length > 0) {
+          content = JSON.stringify(parsed.posts);
+        } else if (parsed?.content)      content = String(parsed.content);
         else if (parsed?.article) content = String(parsed.article);
         else if (parsed?.body)    content = String(parsed.body);
         else if (parsed?.output)  content = String(parsed.output);
@@ -454,6 +472,7 @@ export default function ProjectDetailPage() {
       {showRunConfig && project && (
         <RunConfigModal
           projectName={project.name}
+          webhookUrl={project.webhookUrl}
           onConfirm={handleRun}
           onClose={() => setShowRunConfig(false)}
         />

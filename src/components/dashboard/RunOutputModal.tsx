@@ -40,14 +40,100 @@ function cleanContent(raw: string): string {
 
 // ─── توليد اسم الملف ──────────────────────────────────────────────────────────
 function makeFilename(projectName: string, ext: "txt" | "md"): string {
-  const date  = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+  const date  = new Date().toISOString().slice(0, 10);
   const safe  = projectName.replace(/[^a-zA-Z0-9\u0600-\u06FF]+/g, "-").slice(0, 40);
   return `${safe}-${date}.${ext}`;
 }
 
+// ─── كشف بوستات Social Media ──────────────────────────────────────────────────
+type SocialPost = {
+  caption?:          string;
+  hashtags?:         string[];
+  image_suggestion?: string;
+  cta?:              string;
+  [key: string]:     unknown;
+};
+
+function parsePosts(raw: string): SocialPost[] | null {
+  try {
+    const p = JSON.parse(raw);
+    if (Array.isArray(p) && p.length > 0 && (p[0]?.caption || p[0]?.hashtags)) return p;
+    if (Array.isArray(p?.posts) && p.posts.length > 0) return p.posts;
+  } catch { /* not JSON */ }
+  return null;
+}
+
+// ─── Post Card ────────────────────────────────────────────────────────────────
+function PostCard({ post, index }: { post: SocialPost; index: number }) {
+  const [copied, setCopied] = useState(false);
+  const hashtags = Array.isArray(post.hashtags) ? post.hashtags : [];
+
+  function handleCopy() {
+    const text = [post.caption, hashtags.map((h) => `#${h.replace(/^#/, "")}`).join(" ")].filter(Boolean).join("\n\n");
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1800);
+  }
+
+  return (
+    <div className="bg-surface-container-low rounded-xl border border-outline-variant/10 p-5 space-y-3">
+      {/* رقم البوست */}
+      <div className="flex items-center justify-between">
+        <span className="text-[10px] font-label text-secondary uppercase tracking-widest">
+          بوست #{index + 1}
+        </span>
+        <button onClick={handleCopy}
+          className="flex items-center gap-1 text-[10px] font-label text-on-surface-variant hover:text-on-surface transition-colors"
+        >
+          <span className="material-symbols-outlined text-[13px]"
+            style={copied ? { fontVariationSettings: "'FILL' 1" } : {}}>
+            {copied ? "check_circle" : "content_copy"}
+          </span>
+          {copied ? "تم النسخ" : "نسخ"}
+        </button>
+      </div>
+
+      {/* Caption */}
+      {post.caption && (
+        <p className="font-body text-sm text-on-surface/90 leading-relaxed whitespace-pre-wrap">
+          {post.caption}
+        </p>
+      )}
+
+      {/* Hashtags */}
+      {hashtags.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {hashtags.map((tag, i) => (
+            <span key={i} className="px-2 py-0.5 bg-primary/10 text-primary rounded-full text-[11px] font-label">
+              #{String(tag).replace(/^#/, "")}
+            </span>
+          ))}
+        </div>
+      )}
+
+      {/* Image suggestion */}
+      {post.image_suggestion && (
+        <div className="flex items-start gap-2 bg-surface-container rounded-lg px-3 py-2">
+          <span className="material-symbols-outlined text-secondary text-[15px] mt-0.5 flex-shrink-0">image</span>
+          <p className="text-xs font-body text-on-surface-variant leading-relaxed">{post.image_suggestion}</p>
+        </div>
+      )}
+
+      {/* CTA */}
+      {post.cta && (
+        <div className="flex items-center gap-2 bg-surface-container rounded-lg px-3 py-2">
+          <span className="material-symbols-outlined text-orange-400 text-[15px] flex-shrink-0">ads_click</span>
+          <p className="text-xs font-label font-bold text-orange-400">{post.cta}</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function RunOutputModal({ output, projectName, onClose }: Props) {
   const isImage = Boolean(output.imageUrl);
-  const content = cleanContent(output.content ?? "");
+  const posts   = !isImage ? parsePosts(output.content ?? "") : null;
+  const content = posts ? "" : cleanContent(output.content ?? "");
   const title   = (output.title ?? "").replace(/^=+\s*/, "").trim();
 
   const [copied,      setCopied]      = useState(false);
@@ -151,7 +237,15 @@ export default function RunOutputModal({ output, projectName, onClose }: Props) 
 
         {/* ── Content ─────────────────────────────────────────────────────── */}
         <div className="flex-1 overflow-y-auto px-6 py-5">
-          {isImage ? (
+          {posts ? (
+            /* ── وضع البوستات ───────────────────────────────────────────── */
+            <div className="space-y-4">
+              <p className="text-[10px] font-label text-secondary uppercase tracking-widest">
+                {posts.length} بوستات جاهزة للنشر
+              </p>
+              {posts.map((post, i) => <PostCard key={i} post={post} index={i} />)}
+            </div>
+          ) : isImage ? (
             /* ── وضع الصورة ─────────────────────────────────────────────── */
             <div className="flex flex-col items-center gap-3">
               {!imgLoaded && (
@@ -200,7 +294,7 @@ export default function RunOutputModal({ output, projectName, onClose }: Props) 
           {/* Row 1 — عداد + تنزيل */}
           <div className="flex items-center justify-between gap-2">
             <span className="font-label text-xs text-on-surface-variant">
-              {isImage ? "صورة مُولَّدة" : `${content.length.toLocaleString()} حرف`}
+              {isImage ? "صورة مُولَّدة" : posts ? `${posts.length} بوستات` : `${content.length.toLocaleString()} حرف`}
             </span>
 
             {isImage ? (

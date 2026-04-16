@@ -3,39 +3,105 @@
 import { useState, useRef, useEffect } from "react";
 
 export type RunConfig = {
-  topic:    string;
-  keyword:  string;
-  language: string;
+  language:           string;
+  // Standard agent
+  topic?:             string;
+  keyword?:           string;
+  // Social media agent
+  client_name?:       string;
+  brand_description?: string;
+  platform?:          string;
+  occasion?:          string;
+  tone?:              string;
+  industry?:          string;
+  post_count?:        string;
+  extra_info?:        string;
 };
 
 interface Props {
   projectName: string;
+  webhookUrl:  string | null;
   onConfirm:   (config: RunConfig) => void;
   onClose:     () => void;
 }
 
 const LANGUAGES = [
-  { value: "Arabic",   label: "العربية",  flag: "🇸🇦" },
-  { value: "English",  label: "English",   flag: "🇬🇧" },
-  { value: "French",   label: "Français",  flag: "🇫🇷" },
-  { value: "Spanish",  label: "Español",   flag: "🇪🇸" },
+  { value: "Arabic",  label: "العربية", flag: "🇸🇦" },
+  { value: "English", label: "English",  flag: "🇬🇧" },
+  { value: "French",  label: "Français", flag: "🇫🇷" },
+  { value: "Spanish", label: "Español",  flag: "🇪🇸" },
 ];
 
-export default function RunConfigModal({ projectName, onConfirm, onClose }: Props) {
+const PLATFORMS = [
+  { value: "Instagram", label: "Instagram", icon: "📸" },
+  { value: "Facebook",  label: "Facebook",  icon: "📘" },
+  { value: "Twitter",   label: "Twitter/X", icon: "🐦" },
+  { value: "LinkedIn",  label: "LinkedIn",  icon: "💼" },
+];
+
+const OCCASIONS = [
+  "عادي", "رمضان", "عيد", "عرض خاص", "يوم وطني",
+];
+
+const TONES = [
+  { value: "professional", label: "احترافي" },
+  { value: "friendly",     label: "ودي"     },
+  { value: "luxury",       label: "فاخر"    },
+  { value: "casual",       label: "كاجوال"  },
+];
+
+const POST_COUNTS = ["3", "5", "10"];
+
+// ─── Shared field styles ───────────────────────────────────────────────────────
+const inputCls = "w-full bg-surface-container-high ring-1 ring-white/10 hover:ring-primary/30 focus:ring-primary/60 outline-none transition-all duration-200 px-4 py-3 rounded-xl text-on-surface font-body text-sm placeholder:text-on-surface-variant/40";
+const selectCls = "w-full bg-surface-container-high ring-1 ring-white/10 hover:ring-primary/30 focus:ring-primary/60 outline-none transition-all duration-200 px-4 py-3 rounded-xl text-on-surface font-body text-sm";
+const labelCls = "block font-label text-xs text-on-surface-variant uppercase tracking-wider mb-1.5";
+
+export default function RunConfigModal({ projectName, webhookUrl, onConfirm, onClose }: Props) {
+  const isSocial = Boolean(webhookUrl?.includes("social-agent"));
+
+  // ── Standard fields ──────────────────────────────────────────────────────
   const [topic,    setTopic]    = useState("");
   const [keyword,  setKeyword]  = useState("");
+
+  // ── Social fields ────────────────────────────────────────────────────────
+  const [clientName,        setClientName]        = useState("");
+  const [brandDescription,  setBrandDescription]  = useState("");
+  const [platform,          setPlatform]          = useState("Instagram");
+  const [occasion,          setOccasion]          = useState("عادي");
+  const [tone,              setTone]              = useState("professional");
+  const [industry,          setIndustry]          = useState("");
+  const [postCount,         setPostCount]         = useState("5");
+  const [extraInfo,         setExtraInfo]         = useState("");
+
+  // ── Common ───────────────────────────────────────────────────────────────
   const [language, setLanguage] = useState("Arabic");
-  const topicRef = useRef<HTMLInputElement>(null);
+  const firstRef = useRef<HTMLInputElement>(null);
 
-  // Focus أول حقل عند الفتح
-  useEffect(() => { topicRef.current?.focus(); }, []);
+  useEffect(() => { firstRef.current?.focus(); }, []);
 
-  const canSubmit = topic.trim().length > 0 && keyword.trim().length > 0;
+  const canSubmit = isSocial
+    ? clientName.trim().length > 0
+    : topic.trim().length > 0 && keyword.trim().length > 0;
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!canSubmit) return;
-    onConfirm({ topic: topic.trim(), keyword: keyword.trim(), language });
+    if (isSocial) {
+      onConfirm({
+        language,
+        client_name:       clientName.trim(),
+        brand_description: brandDescription.trim(),
+        platform,
+        occasion,
+        tone,
+        industry:          industry.trim(),
+        post_count:        postCount,
+        extra_info:        extraInfo.trim(),
+      });
+    } else {
+      onConfirm({ topic: topic.trim(), keyword: keyword.trim(), language });
+    }
   }
 
   return (
@@ -43,103 +109,199 @@ export default function RunConfigModal({ projectName, onConfirm, onClose }: Prop
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div className="w-full max-w-md bg-surface-container rounded-2xl shadow-[0_40px_80px_rgba(0,0,0,0.6)] border border-outline-variant/10 overflow-hidden">
+      <div className="w-full max-w-md bg-surface-container rounded-2xl shadow-[0_40px_80px_rgba(0,0,0,0.6)] border border-outline-variant/10 flex flex-col max-h-[90vh]">
 
         {/* Header */}
-        <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-outline-variant/10">
+        <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-outline-variant/10 flex-shrink-0">
           <div>
             <p className="text-[10px] font-label text-secondary uppercase tracking-widest mb-0.5">
               {projectName}
             </p>
             <h2 className="font-headline text-lg font-bold text-on-surface">
-              إعداد التشغيل
+              {isSocial ? "إعداد البوستات" : "إعداد التشغيل"}
             </h2>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
+          <button type="button" onClick={onClose}
             className="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-all"
           >
             <span className="material-symbols-outlined text-[20px]">close</span>
           </button>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="px-6 py-5 space-y-5">
+        {/* Form — scrollable */}
+        <form onSubmit={handleSubmit} className="overflow-y-auto px-6 py-5 space-y-4 flex-1">
 
-          {/* Topic */}
-          <div className="space-y-1.5">
-            <label className="flex items-center gap-1.5 font-label text-xs text-on-surface-variant uppercase tracking-wider">
-              <span className="material-symbols-outlined text-[14px] text-primary">topic</span>
-              الموضوع
-              <span className="text-error">*</span>
-            </label>
-            <input
-              ref={topicRef}
-              type="text"
-              value={topic}
-              onChange={(e) => setTopic(e.target.value)}
-              placeholder="مثال: فوائد الذكاء الاصطناعي في التعليم"
-              maxLength={200}
-              className="w-full bg-surface-container-high ring-1 ring-white/10 hover:ring-primary/30 focus:ring-primary/60 outline-none transition-all duration-200 px-4 py-3 rounded-xl text-on-surface font-body text-sm placeholder:text-on-surface-variant/40"
-            />
-          </div>
+          {isSocial ? (
+            /* ── Social Media Fields ─────────────────────────────────── */
+            <>
+              {/* client_name */}
+              <div>
+                <label className={labelCls}>
+                  اسم العميل <span className="text-error">*</span>
+                </label>
+                <input ref={firstRef} type="text" value={clientName}
+                  onChange={(e) => setClientName(e.target.value)}
+                  placeholder="مثال: مطعم ليلى"
+                  maxLength={100} className={inputCls}
+                />
+              </div>
 
-          {/* Keyword */}
-          <div className="space-y-1.5">
-            <label className="flex items-center gap-1.5 font-label text-xs text-on-surface-variant uppercase tracking-wider">
-              <span className="material-symbols-outlined text-[14px] text-secondary">key</span>
-              الكلمة الدلالية
-              <span className="text-error">*</span>
-            </label>
-            <input
-              type="text"
-              value={keyword}
-              onChange={(e) => setKeyword(e.target.value)}
-              placeholder="مثال: AI education"
-              maxLength={100}
-              className="w-full bg-surface-container-high ring-1 ring-white/10 hover:ring-secondary/30 focus:ring-secondary/60 outline-none transition-all duration-200 px-4 py-3 rounded-xl text-on-surface font-body text-sm placeholder:text-on-surface-variant/40"
-            />
-          </div>
+              {/* brand_description */}
+              <div>
+                <label className={labelCls}>وصف البراند</label>
+                <textarea value={brandDescription}
+                  onChange={(e) => setBrandDescription(e.target.value)}
+                  placeholder="صف البراند ونشاطه التجاري باختصار..."
+                  rows={3} maxLength={500}
+                  className={inputCls + " resize-none"}
+                />
+              </div>
 
-          {/* Language */}
-          <div className="space-y-1.5">
-            <label className="flex items-center gap-1.5 font-label text-xs text-on-surface-variant uppercase tracking-wider">
-              <span className="material-symbols-outlined text-[14px] text-on-surface-variant">language</span>
-              اللغة
-            </label>
-            <div className="grid grid-cols-2 gap-2">
-              {LANGUAGES.map((lang) => (
-                <button
-                  key={lang.value}
-                  type="button"
-                  onClick={() => setLanguage(lang.value)}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-label text-sm transition-all duration-200 ${
-                    language === lang.value
-                      ? "bg-primary/15 ring-1 ring-primary/60 text-primary font-bold"
-                      : "bg-surface-container-high ring-1 ring-white/10 text-on-surface-variant hover:ring-white/20 hover:text-on-surface"
-                  }`}
-                >
-                  <span className="text-base">{lang.flag}</span>
-                  {lang.label}
-                </button>
-              ))}
-            </div>
-          </div>
+              {/* platform */}
+              <div>
+                <label className={labelCls}>المنصة</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {PLATFORMS.map((p) => (
+                    <button key={p.value} type="button"
+                      onClick={() => setPlatform(p.value)}
+                      className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-label text-sm transition-all ${
+                        platform === p.value
+                          ? "bg-primary/15 ring-1 ring-primary/60 text-primary font-bold"
+                          : "bg-surface-container-high ring-1 ring-white/10 text-on-surface-variant hover:ring-white/20 hover:text-on-surface"
+                      }`}
+                    >
+                      <span>{p.icon}</span>{p.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* occasion + tone */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className={labelCls}>المناسبة</label>
+                  <select value={occasion} onChange={(e) => setOccasion(e.target.value)} className={selectCls}>
+                    {OCCASIONS.map((o) => <option key={o} value={o}>{o}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className={labelCls}>النبرة</label>
+                  <select value={tone} onChange={(e) => setTone(e.target.value)} className={selectCls}>
+                    {TONES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              {/* industry + post_count */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className={labelCls}>القطاع</label>
+                  <input type="text" value={industry}
+                    onChange={(e) => setIndustry(e.target.value)}
+                    placeholder="مثال: مطاعم"
+                    maxLength={80} className={inputCls}
+                  />
+                </div>
+                <div>
+                  <label className={labelCls}>عدد البوستات</label>
+                  <select value={postCount} onChange={(e) => setPostCount(e.target.value)} className={selectCls}>
+                    {POST_COUNTS.map((n) => <option key={n} value={n}>{n} بوستات</option>)}
+                  </select>
+                </div>
+              </div>
+
+              {/* language */}
+              <div>
+                <label className={labelCls}>اللغة</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {LANGUAGES.map((lang) => (
+                    <button key={lang.value} type="button"
+                      onClick={() => setLanguage(lang.value)}
+                      className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-label text-sm transition-all ${
+                        language === lang.value
+                          ? "bg-primary/15 ring-1 ring-primary/60 text-primary font-bold"
+                          : "bg-surface-container-high ring-1 ring-white/10 text-on-surface-variant hover:ring-white/20 hover:text-on-surface"
+                      }`}
+                    >
+                      <span className="text-base">{lang.flag}</span>{lang.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* extra_info */}
+              <div>
+                <label className={labelCls}>معلومات إضافية</label>
+                <textarea value={extraInfo}
+                  onChange={(e) => setExtraInfo(e.target.value)}
+                  placeholder="أي تفاصيل إضافية تريد مراعاتها..."
+                  rows={2} maxLength={300}
+                  className={inputCls + " resize-none"}
+                />
+              </div>
+            </>
+          ) : (
+            /* ── Standard Fields ─────────────────────────────────────── */
+            <>
+              {/* Topic */}
+              <div>
+                <label className="flex items-center gap-1.5 font-label text-xs text-on-surface-variant uppercase tracking-wider mb-1.5">
+                  <span className="material-symbols-outlined text-[14px] text-primary">topic</span>
+                  الموضوع <span className="text-error">*</span>
+                </label>
+                <input ref={firstRef} type="text" value={topic}
+                  onChange={(e) => setTopic(e.target.value)}
+                  placeholder="مثال: فوائد الذكاء الاصطناعي في التعليم"
+                  maxLength={200} className={inputCls}
+                />
+              </div>
+
+              {/* Keyword */}
+              <div>
+                <label className="flex items-center gap-1.5 font-label text-xs text-on-surface-variant uppercase tracking-wider mb-1.5">
+                  <span className="material-symbols-outlined text-[14px] text-secondary">key</span>
+                  الكلمة الدلالية <span className="text-error">*</span>
+                </label>
+                <input type="text" value={keyword}
+                  onChange={(e) => setKeyword(e.target.value)}
+                  placeholder="مثال: AI education"
+                  maxLength={100} className={inputCls}
+                />
+              </div>
+
+              {/* Language */}
+              <div>
+                <label className="flex items-center gap-1.5 font-label text-xs text-on-surface-variant uppercase tracking-wider mb-1.5">
+                  <span className="material-symbols-outlined text-[14px] text-on-surface-variant">language</span>
+                  اللغة
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  {LANGUAGES.map((lang) => (
+                    <button key={lang.value} type="button"
+                      onClick={() => setLanguage(lang.value)}
+                      className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-label text-sm transition-all ${
+                        language === lang.value
+                          ? "bg-primary/15 ring-1 ring-primary/60 text-primary font-bold"
+                          : "bg-surface-container-high ring-1 ring-white/10 text-on-surface-variant hover:ring-white/20 hover:text-on-surface"
+                      }`}
+                    >
+                      <span className="text-base">{lang.flag}</span>{lang.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
 
           {/* Footer buttons */}
           <div className="flex gap-3 pt-1">
-            <button
-              type="button"
-              onClick={onClose}
+            <button type="button" onClick={onClose}
               className="flex-1 bg-surface-container-high text-on-surface-variant hover:text-on-surface hover:bg-surface-bright py-3 rounded-xl font-headline font-bold text-sm transition-all"
             >
               إلغاء
             </button>
-            <button
-              type="submit"
-              disabled={!canSubmit}
-              className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-br from-primary to-primary-dim text-on-primary py-3 rounded-xl font-headline font-bold text-sm hover:shadow-[0_0_24px_rgba(219,144,255,0.35)] active:scale-[0.98] transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
+            <button type="submit" disabled={!canSubmit}
+              className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-br from-primary to-primary-dim text-on-primary py-3 rounded-xl font-headline font-bold text-sm hover:shadow-[0_0_24px_rgba(219,144,255,0.35)] active:scale-[0.98] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
             >
               <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>
                 play_circle
