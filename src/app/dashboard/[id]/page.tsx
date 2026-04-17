@@ -95,6 +95,12 @@ export default function ProjectDetailPage() {
         projectName: project.name,
       };
 
+      // ── DEBUG payload ─────────────────────────────────────────────────────
+      console.log("WEBHOOK URL:", webhookUrl);
+      console.log("IS SOCIAL:", isSocial);
+      console.log("PAYLOAD:", JSON.stringify(bodyPayload, null, 2));
+      // ──────────────────────────────────────────────────────────────────────
+
       const res = await fetch(webhookUrl, {
         method:  "POST",
         headers: { "Content-Type": "application/json" },
