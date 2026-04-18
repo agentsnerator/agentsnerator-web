@@ -45,6 +45,30 @@ function makeFilename(projectName: string, ext: "txt" | "md"): string {
   return `${safe}-${date}.${ext}`;
 }
 
+// ─── تحويل البوستات إلى نص ───────────────────────────────────────────────────
+function postsToText(posts: SocialPost[], fmt: "md" | "txt"): string {
+  return posts.map((post, i) => {
+    const hashtags = Array.isArray(post.hashtags)
+      ? post.hashtags.map((h) => `#${String(h).replace(/^#/, "")}`).join(" ")
+      : "";
+
+    if (fmt === "md") {
+      const lines: string[] = [`## بوست ${i + 1}`];
+      if (post.caption) lines.push("", post.caption);
+      if (hashtags)     lines.push("", hashtags);
+      if (post.cta)     lines.push("", `**CTA:** ${post.cta}`);
+      lines.push("", "---");
+      return lines.join("\n");
+    } else {
+      const lines: string[] = [`=== بوست ${i + 1} ===`];
+      if (post.caption) lines.push("", post.caption);
+      if (hashtags)     lines.push("", hashtags);
+      if (post.cta)     lines.push("", `CTA: ${post.cta}`);
+      return lines.join("\n");
+    }
+  }).join("\n\n");
+}
+
 // ─── كشف بوستات Social Media ──────────────────────────────────────────────────
 type SocialPost = {
   caption?:          string;
@@ -170,7 +194,9 @@ export default function RunOutputModal({ output, projectName, onClose }: Props) 
   function handleCopy() {
     const text = isImage
       ? (output.imageUrl ?? "")
-      : (title ? `${title}\n\n${content}` : content);
+      : posts
+        ? postsToText(posts, "txt")
+        : (title ? `${title}\n\n${content}` : content);
     navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -178,7 +204,9 @@ export default function RunOutputModal({ output, projectName, onClose }: Props) 
 
   // ── مشاركة: نسخ النص كاملاً من القائمة ───────────────────────────────────
   function handleShareCopy() {
-    const text = title ? `${title}\n\n${content}` : content;
+    const text = posts
+      ? postsToText(posts, "txt")
+      : (title ? `${title}\n\n${content}` : content);
     navigator.clipboard.writeText(text);
     setCopiedText(true);
     setTimeout(() => { setCopiedText(false); setShareOpen(false); }, 1800);
@@ -209,12 +237,14 @@ export default function RunOutputModal({ output, projectName, onClose }: Props) 
 
   // ── تنزيل الملف ──────────────────────────────────────────────────────────
   function handleDownload(ext: "txt" | "md") {
-    const fullText = title ? `# ${title}\n\n${content}` : content;
-    const blob     = new Blob([fullText], { type: "text/plain;charset=utf-8" });
-    const url      = URL.createObjectURL(blob);
-    const a        = document.createElement("a");
-    a.href         = url;
-    a.download     = makeFilename(projectName, ext);
+    const fullText = posts
+      ? postsToText(posts, ext)
+      : (title ? `# ${title}\n\n${content}` : content);
+    const blob = new Blob([fullText], { type: "text/plain;charset=utf-8" });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement("a");
+    a.href     = url;
+    a.download = makeFilename(projectName, ext);
     a.click();
     URL.revokeObjectURL(url);
   }
@@ -422,7 +452,7 @@ export default function RunOutputModal({ output, projectName, onClose }: Props) 
 
             <div className="flex-1" />
 
-            {/* نسخ النص / الرابط */}
+            {/* نسخ النص / الرابط / الكل */}
             <button
               onClick={handleCopy}
               className="flex items-center gap-1.5 bg-surface-container-high hover:bg-surface-bright text-on-surface px-3 py-2 rounded-lg font-headline font-bold text-xs transition-colors min-w-[90px] justify-center"
@@ -435,7 +465,7 @@ export default function RunOutputModal({ output, projectName, onClose }: Props) 
               ) : (
                 <>
                   <span className="material-symbols-outlined text-[15px]">content_copy</span>
-                  {isImage ? "نسخ الرابط" : "نسخ"}
+                  {isImage ? "نسخ الرابط" : posts ? "نسخ الكل" : "نسخ"}
                 </>
               )}
             </button>
