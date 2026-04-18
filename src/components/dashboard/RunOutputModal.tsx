@@ -50,8 +50,8 @@ type SocialPost = {
   caption?:          string;
   hashtags?:         string[];
   image_suggestion?: string;
+  image_url?:        string;
   cta?:              string;
-  [key: string]:     unknown;
 };
 
 function parsePosts(raw: string): SocialPost[] | null {
@@ -98,6 +98,17 @@ function PostCard({ post, index }: { post: SocialPost; index: number }) {
         <p className="font-body text-sm text-on-surface/90 leading-relaxed whitespace-pre-wrap">
           {post.caption}
         </p>
+      )}
+
+      {/* صورة البوست */}
+      {post.image_url && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={post.image_url}
+          alt={post.image_suggestion || "post image"}
+          className="w-full rounded-lg my-2 max-h-64 object-cover"
+          onError={(e) => { e.currentTarget.style.display = "none"; }}
+        />
       )}
 
       {/* Hashtags */}
