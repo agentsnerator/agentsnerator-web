@@ -75,8 +75,18 @@ type SocialPost = {
 function parsePosts(raw: string): SocialPost[] | null {
   try {
     const p = JSON.parse(raw);
-    if (Array.isArray(p) && p.length > 0 && (p[0]?.caption || p[0]?.hashtags)) return p;
-    if (Array.isArray(p?.posts) && p.posts.length > 0) return p.posts;
+    const result = Array.isArray(p) && p.length > 0 && (p[0]?.caption || p[0]?.hashtags)
+      ? p
+      : Array.isArray(p?.posts) && p.posts.length > 0
+        ? p.posts
+        : null;
+    // DEBUG مؤقت
+    console.log("parsePosts result:", result?.map((post: SocialPost, i: number) => ({
+      index: i,
+      image_url: post.image_url,
+      keys: Object.keys(post),
+    })));
+    return result;
   } catch { /* not JSON */ }
   return null;
 }
@@ -85,6 +95,14 @@ function parsePosts(raw: string): SocialPost[] | null {
 function PostCard({ post, index }: { post: SocialPost; index: number }) {
   const [copied, setCopied] = useState(false);
   const hashtags = Array.isArray(post.hashtags) ? post.hashtags : [];
+
+  // DEBUG مؤقت
+  console.log(`Post #${index + 1}`, {
+    image_url:        post.image_url,
+    image_suggestion: post.image_suggestion,
+    caption_preview:  post.caption?.slice(0, 40),
+    keys:             Object.keys(post),
+  });
 
   function handleCopy() {
     const parts: string[] = [];
