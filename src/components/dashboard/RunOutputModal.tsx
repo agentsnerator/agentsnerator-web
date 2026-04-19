@@ -52,21 +52,15 @@ function postsToText(posts: SocialPost[], fmt: "md" | "txt"): string {
       ? post.hashtags.map((h) => `#${String(h).replace(/^#/, "")}`).join(" ")
       : "";
 
-    if (fmt === "md") {
-      const lines: string[] = [`## بوست ${i + 1}`];
-      if (post.caption) lines.push("", post.caption);
-      if (hashtags)     lines.push("", hashtags);
-      if (post.cta)     lines.push("", `**CTA:** ${post.cta}`);
-      lines.push("", "---");
-      return lines.join("\n");
-    } else {
-      const lines: string[] = [`=== بوست ${i + 1} ===`];
-      if (post.caption) lines.push("", post.caption);
-      if (hashtags)     lines.push("", hashtags);
-      if (post.cta)     lines.push("", `CTA: ${post.cta}`);
-      return lines.join("\n");
-    }
-  }).join("\n\n");
+    const parts: string[] = [];
+    if (post.caption) parts.push(post.caption);
+    if (hashtags)     parts.push(hashtags);
+    if (post.cta)     parts.push(`👉 ${post.cta}`);
+
+    const block = parts.join("\n\n");
+    const divider = fmt === "md" ? "---" : "ـــــــ";
+    return block + (i < posts.length - 1 ? `\n\n${divider}\n` : "");
+  }).join("\n");
 }
 
 // ─── كشف بوستات Social Media ──────────────────────────────────────────────────
@@ -93,8 +87,11 @@ function PostCard({ post, index }: { post: SocialPost; index: number }) {
   const hashtags = Array.isArray(post.hashtags) ? post.hashtags : [];
 
   function handleCopy() {
-    const text = [post.caption, hashtags.map((h) => `#${h.replace(/^#/, "")}`).join(" ")].filter(Boolean).join("\n\n");
-    navigator.clipboard.writeText(text);
+    const parts: string[] = [];
+    if (post.caption)       parts.push(post.caption);
+    if (hashtags.length > 0) parts.push(hashtags.map((h) => `#${h.replace(/^#/, "")}`).join(" "));
+    if (post.cta)            parts.push(`👉 ${post.cta}`);
+    navigator.clipboard.writeText(parts.join("\n\n"));
     setCopied(true);
     setTimeout(() => setCopied(false), 1800);
   }
@@ -284,7 +281,9 @@ export default function RunOutputModal({ output, projectName, onClose }: Props) 
               <p className="text-[10px] font-label text-secondary uppercase tracking-widest">
                 {posts.length} بوستات جاهزة للنشر
               </p>
-              {posts.map((post, i) => <PostCard key={i} post={post} index={i} />)}
+              {posts.map((post, i) => (
+                <PostCard key={`post-${i}-${post.image_url ?? i}`} post={post} index={i} />
+              ))}
             </div>
           ) : isImage ? (
             /* ── وضع الصورة ─────────────────────────────────────────────── */
