@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import Logo from "@/components/Logo";
 
 const NAV_LINKS = [
   { href: "#features", label: "المميزات" },
@@ -16,21 +15,30 @@ export default function LandingNavbar() {
   return (
     <nav
       dir="rtl"
-      className="fixed top-0 w-full z-50 navbar-bg backdrop-blur-xl border-b border-white/5 h-16"
+      className="fixed top-0 w-full z-50 bg-[#0a0a0f] border-b border-white/5 h-16"
     >
       <div className="max-w-6xl mx-auto px-6 h-full flex items-center justify-between gap-4">
-        {/* Logo — shrink-0 + overflow-visible prevents clipping in RTL flex */}
-        <Link href="/" className="flex items-center shrink-0 overflow-visible whitespace-nowrap">
-          <Logo width={210} height={46} />
+
+        {/* Logo — text only, no SVG */}
+        <Link href="/" className="flex flex-col shrink-0 leading-tight">
+          <span className="text-xl font-bold tracking-tight">
+            <span className="text-white">Agents</span>
+            <span className="bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent">
+              Nerator
+            </span>
+          </span>
+          <span className="text-[9px] text-gray-500 tracking-widest uppercase">
+            TRADE · OWN · DEPLOY
+          </span>
         </Link>
 
         {/* Desktop links */}
-        <div className="hidden md:flex items-center gap-8 min-w-0">
+        <div className="hidden md:flex items-center gap-8">
           {NAV_LINKS.map(({ href, label }) => (
             <a
               key={href}
               href={href}
-              className="text-sm text-white/60 hover:text-primary transition-colors font-label"
+              className="text-sm text-white/60 hover:text-white transition-colors font-label"
             >
               {label}
             </a>
@@ -47,7 +55,7 @@ export default function LandingNavbar() {
           </Link>
           <Link
             href="/sign-up"
-            className="bg-gradient-to-l from-primary to-primary-dim text-on-primary text-sm font-headline font-bold px-5 py-2 rounded-xl hover:brightness-110 active:scale-95 transition-all"
+            className="bg-gradient-to-r from-purple-600 to-purple-500 text-white text-sm font-bold px-5 py-2 rounded-xl hover:brightness-110 active:scale-95 transition-all"
           >
             ابدأ مجاناً
           </Link>
@@ -67,13 +75,13 @@ export default function LandingNavbar() {
 
       {/* Mobile menu */}
       {open && (
-        <div className="md:hidden bg-[#0e0e10] border-t border-white/5 px-6 py-4 flex flex-col gap-4">
+        <div className="md:hidden bg-[#0a0a0f] border-t border-white/5 px-6 py-4 flex flex-col gap-4">
           {NAV_LINKS.map(({ href, label }) => (
             <a
               key={href}
               href={href}
               onClick={() => setOpen(false)}
-              className="text-sm text-white/70 hover:text-primary transition-colors font-label"
+              className="text-sm text-white/70 hover:text-white transition-colors font-label"
             >
               {label}
             </a>
@@ -81,7 +89,7 @@ export default function LandingNavbar() {
           <Link
             href="/sign-up"
             onClick={() => setOpen(false)}
-            className="text-sm text-primary font-headline font-bold"
+            className="text-sm text-purple-400 font-bold"
           >
             ابدأ مجاناً ←
           </Link>

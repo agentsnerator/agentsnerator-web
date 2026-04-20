@@ -90,27 +90,17 @@ const PLANS = [
 
 export default function HomePage() {
   return (
-    <div dir="rtl" className="min-h-screen bg-[#0a0a0d] text-white overflow-x-hidden">
+    <div dir="rtl" className="min-h-screen bg-[#0a0a0f] text-white overflow-x-hidden">
       <LandingNavbar />
 
       <main className="pt-16">
 
         {/* ── HERO ─────────────────────────────────────────────────────── */}
-        <section className="relative min-h-[88vh] flex flex-col items-center justify-center text-center px-6 py-16 overflow-hidden">
-          {/* Dot-grid background pattern */}
-          <div
-            className="pointer-events-none absolute inset-0 opacity-[0.18]"
-            style={{
-              backgroundImage: "radial-gradient(circle, rgba(168,85,247,0.5) 1px, transparent 1px)",
-              backgroundSize: "28px 28px",
-            }}
-          />
-          {/* Radial fade mask so dots fade out toward center */}
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_50%,transparent_30%,#0a0a0d_80%)]" />
-
-          {/* Corner glows */}
-          <div className="pointer-events-none absolute top-0 right-0 w-[500px] h-[400px] bg-primary/10 blur-[100px] rounded-full translate-x-1/3 -translate-y-1/4" />
-          <div className="pointer-events-none absolute bottom-0 left-0 w-[450px] h-[350px] bg-secondary/8 blur-[90px] rounded-full -translate-x-1/3 translate-y-1/4" />
+        <section className="relative min-h-[88vh] flex flex-col items-center justify-center text-center px-6 py-16">
+          {/* Glow بنفسجي — أعلى يمين */}
+          <div className="pointer-events-none absolute top-0 right-0 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl" />
+          {/* Glow سيان — أسفل يسار */}
+          <div className="pointer-events-none absolute bottom-0 left-0 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl" />
 
           <div className="relative max-w-4xl mx-auto flex flex-col items-center gap-6">
             {/* Tag */}
