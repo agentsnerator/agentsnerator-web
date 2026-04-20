@@ -77,6 +77,7 @@ export default function ProjectDetailPage() {
       const webhookUrl = project.webhookUrl?.trim() || CEO_WEBHOOK;
       const isSocial   = webhookUrl.includes("social-agent");
       const isReport   = webhookUrl.includes("report-agent");
+      const isSEO      = webhookUrl.includes("seo-agent");
 
       const bodyPayload = isSocial ? {
         client_name:       config.client_name,
@@ -101,6 +102,15 @@ export default function ProjectDetailPage() {
         goals_next_month: config.goals_next_month,
         language:         config.language,
         projectName:      project.name,
+      } : isSEO ? {
+        client_name:     config.client_name,
+        website_url:     config.website_url,
+        industry:        config.industry,
+        target_keywords: config.target_keywords,
+        competitors:     config.competitors,
+        target_country:  config.target_country,
+        language:        config.language,
+        projectName:     project.name,
       } : {
         task:        config.topic,
         keyword:     config.keyword,

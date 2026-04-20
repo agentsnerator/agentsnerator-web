@@ -24,6 +24,11 @@ export type RunConfig = {
   achievements?:      string;
   challenges?:        string;
   goals_next_month?:  string;
+  // SEO agent
+  website_url?:       string;
+  target_keywords?:   string;
+  competitors?:       string;
+  target_country?:    string;
 };
 
 interface Props {
@@ -33,7 +38,7 @@ interface Props {
   onClose:     () => void;
 }
 
-type Mode = "standard" | "social" | "report";
+type Mode = "standard" | "social" | "report" | "seo";
 
 const LANGUAGES = [
   { value: "Arabic",  label: "العربية", flag: "🇸🇦" },
@@ -68,7 +73,8 @@ const selectCls = "w-full bg-surface-container-high ring-1 ring-white/10 hover:r
 const labelCls = "block font-label text-xs text-on-surface-variant uppercase tracking-wider mb-1.5";
 
 export default function RunConfigModal({ projectName, webhookUrl, onConfirm, onClose }: Props) {
-  const mode: Mode = webhookUrl?.includes("report-agent") ? "report"
+  const mode: Mode = webhookUrl?.includes("seo-agent")    ? "seo"
+    : webhookUrl?.includes("report-agent") ? "report"
     : webhookUrl?.includes("social-agent") ? "social"
     : "standard";
 
@@ -97,6 +103,14 @@ export default function RunConfigModal({ projectName, webhookUrl, onConfirm, onC
   const [challenges,      setChallenges]      = useState("");
   const [goalsNextMonth,  setGoalsNextMonth]  = useState("");
 
+  // ── SEO fields ───────────────────────────────────────────────────────────
+  const [seoClient,       setSeoClient]       = useState("");
+  const [websiteUrl,      setWebsiteUrl]      = useState("");
+  const [seoIndustry,     setSeoIndustry]     = useState("");
+  const [targetKeywords,  setTargetKeywords]  = useState("");
+  const [competitors,     setCompetitors]     = useState("");
+  const [targetCountry,   setTargetCountry]   = useState("");
+
   // ── Common ───────────────────────────────────────────────────────────────
   const [language, setLanguage] = useState("Arabic");
   const firstRef = useRef<HTMLInputElement>(null);
@@ -104,8 +118,9 @@ export default function RunConfigModal({ projectName, webhookUrl, onConfirm, onC
   useEffect(() => { firstRef.current?.focus(); }, []);
 
   const canSubmit =
-    mode === "social"   ? clientName.trim().length > 0 :
-    mode === "report"   ? reportClient.trim().length > 0 && month.trim().length > 0 :
+    mode === "social"  ? clientName.trim().length > 0 :
+    mode === "report"  ? reportClient.trim().length > 0 && month.trim().length > 0 :
+    mode === "seo"     ? seoClient.trim().length > 0 && seoIndustry.trim().length > 0 :
     topic.trim().length > 0 && keyword.trim().length > 0;
 
   function handleSubmit(e: React.FormEvent) {
@@ -135,6 +150,16 @@ export default function RunConfigModal({ projectName, webhookUrl, onConfirm, onC
         challenges:       challenges.trim(),
         goals_next_month: goalsNextMonth.trim(),
       });
+    } else if (mode === "seo") {
+      onConfirm({
+        language,
+        client_name:     seoClient.trim(),
+        website_url:     websiteUrl.trim(),
+        industry:        seoIndustry.trim(),
+        target_keywords: targetKeywords.trim(),
+        competitors:     competitors.trim(),
+        target_country:  targetCountry.trim(),
+      });
     } else {
       onConfirm({ topic: topic.trim(), keyword: keyword.trim(), language });
     }
@@ -154,7 +179,7 @@ export default function RunConfigModal({ projectName, webhookUrl, onConfirm, onC
               {projectName}
             </p>
             <h2 className="font-headline text-lg font-bold text-on-surface">
-              {mode === "social" ? "إعداد البوستات" : mode === "report" ? "التقرير الشهري" : "إعداد التشغيل"}
+              {mode === "social" ? "إعداد البوستات" : mode === "report" ? "التقرير الشهري" : mode === "seo" ? "تحليل SEO" : "إعداد التشغيل"}
             </h2>
           </div>
           <button type="button" onClick={onClose}
@@ -363,6 +388,90 @@ export default function RunConfigModal({ projectName, webhookUrl, onConfirm, onC
                   onChange={(e) => setGoalsNextMonth(e.target.value)}
                   placeholder="ما الذي نسعى لتحقيقه..."
                   rows={2} maxLength={400}
+                  className={inputCls + " resize-none"}
+                />
+              </div>
+
+              {/* language */}
+              <div>
+                <label className={labelCls}>لغة التقرير</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {LANGUAGES.map((lang) => (
+                    <button key={lang.value} type="button"
+                      onClick={() => setLanguage(lang.value)}
+                      className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-label text-sm transition-all ${
+                        language === lang.value
+                          ? "bg-primary/15 ring-1 ring-primary/60 text-primary font-bold"
+                          : "bg-surface-container-high ring-1 ring-white/10 text-on-surface-variant hover:ring-white/20 hover:text-on-surface"
+                      }`}
+                    >
+                      <span className="text-base">{lang.flag}</span>{lang.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </>
+          ) : mode === "seo" ? (
+            /* ── SEO Fields ──────────────────────────────────────────── */
+            <>
+              {/* client_name + industry */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className={labelCls}>اسم العميل <span className="text-error">*</span></label>
+                  <input ref={firstRef} type="text" value={seoClient}
+                    onChange={(e) => setSeoClient(e.target.value)}
+                    placeholder="مثال: شركة ريادة"
+                    maxLength={100} className={inputCls}
+                  />
+                </div>
+                <div>
+                  <label className={labelCls}>القطاع <span className="text-error">*</span></label>
+                  <input type="text" value={seoIndustry}
+                    onChange={(e) => setSeoIndustry(e.target.value)}
+                    placeholder="مثال: عقارات"
+                    maxLength={60} className={inputCls}
+                  />
+                </div>
+              </div>
+
+              {/* website_url + target_country */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className={labelCls}>رابط الموقع</label>
+                  <input type="url" value={websiteUrl}
+                    onChange={(e) => setWebsiteUrl(e.target.value)}
+                    placeholder="https://example.com"
+                    maxLength={200} className={inputCls}
+                  />
+                </div>
+                <div>
+                  <label className={labelCls}>الدولة المستهدفة</label>
+                  <input type="text" value={targetCountry}
+                    onChange={(e) => setTargetCountry(e.target.value)}
+                    placeholder="السعودية"
+                    maxLength={60} className={inputCls}
+                  />
+                </div>
+              </div>
+
+              {/* target_keywords */}
+              <div>
+                <label className={labelCls}>الكلمات المفتاحية الحالية</label>
+                <textarea value={targetKeywords}
+                  onChange={(e) => setTargetKeywords(e.target.value)}
+                  placeholder="كل كلمة أو عبارة في سطر منفصل..."
+                  rows={3} maxLength={600}
+                  className={inputCls + " resize-none"}
+                />
+              </div>
+
+              {/* competitors */}
+              <div>
+                <label className={labelCls}>المنافسون (URLs)</label>
+                <textarea value={competitors}
+                  onChange={(e) => setCompetitors(e.target.value)}
+                  placeholder="https://competitor1.com&#10;https://competitor2.com"
+                  rows={3} maxLength={500}
                   className={inputCls + " resize-none"}
                 />
               </div>
