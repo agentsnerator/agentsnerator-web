@@ -74,8 +74,9 @@ export default function ProjectDetailPage() {
     const timer = setTimeout(() => controller.abort(), 30_000);
 
     try {
-      const webhookUrl  = project.webhookUrl?.trim() || CEO_WEBHOOK;
-      const isSocial    = webhookUrl.includes("social-agent");
+      const webhookUrl = project.webhookUrl?.trim() || CEO_WEBHOOK;
+      const isSocial   = webhookUrl.includes("social-agent");
+      const isReport   = webhookUrl.includes("report-agent");
 
       const bodyPayload = isSocial ? {
         client_name:       config.client_name,
@@ -88,6 +89,18 @@ export default function ProjectDetailPage() {
         post_count:        config.post_count,
         extra_info:        config.extra_info,
         projectName:       project.name,
+      } : isReport ? {
+        client_name:      config.client_name,
+        month:            config.month,
+        industry:         config.industry,
+        posts_count:      config.posts_count,
+        articles_count:   config.articles_count,
+        images_count:     config.images_count,
+        achievements:     config.achievements,
+        challenges:       config.challenges,
+        goals_next_month: config.goals_next_month,
+        language:         config.language,
+        projectName:      project.name,
       } : {
         task:        config.topic,
         keyword:     config.keyword,

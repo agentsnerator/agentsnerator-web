@@ -16,6 +16,14 @@ export type RunConfig = {
   industry?:          string;
   post_count?:        string;
   extra_info?:        string;
+  // Monthly Report agent
+  month?:             string;
+  posts_count?:       string;
+  articles_count?:    string;
+  images_count?:      string;
+  achievements?:      string;
+  challenges?:        string;
+  goals_next_month?:  string;
 };
 
 interface Props {
@@ -24,6 +32,8 @@ interface Props {
   onConfirm:   (config: RunConfig) => void;
   onClose:     () => void;
 }
+
+type Mode = "standard" | "social" | "report";
 
 const LANGUAGES = [
   { value: "Arabic",  label: "العربية", flag: "🇸🇦" },
@@ -58,21 +68,34 @@ const selectCls = "w-full bg-surface-container-high ring-1 ring-white/10 hover:r
 const labelCls = "block font-label text-xs text-on-surface-variant uppercase tracking-wider mb-1.5";
 
 export default function RunConfigModal({ projectName, webhookUrl, onConfirm, onClose }: Props) {
-  const isSocial = Boolean(webhookUrl?.includes("social-agent"));
+  const mode: Mode = webhookUrl?.includes("report-agent") ? "report"
+    : webhookUrl?.includes("social-agent") ? "social"
+    : "standard";
 
   // ── Standard fields ──────────────────────────────────────────────────────
   const [topic,    setTopic]    = useState("");
   const [keyword,  setKeyword]  = useState("");
 
   // ── Social fields ────────────────────────────────────────────────────────
-  const [clientName,        setClientName]        = useState("");
-  const [brandDescription,  setBrandDescription]  = useState("");
-  const [platform,          setPlatform]          = useState("Instagram");
-  const [occasion,          setOccasion]          = useState("عادي");
-  const [tone,              setTone]              = useState("professional");
-  const [industry,          setIndustry]          = useState("");
-  const [postCount,         setPostCount]         = useState("5");
-  const [extraInfo,         setExtraInfo]         = useState("");
+  const [clientName,       setClientName]       = useState("");
+  const [brandDescription, setBrandDescription] = useState("");
+  const [platform,         setPlatform]         = useState("Instagram");
+  const [occasion,         setOccasion]         = useState("عادي");
+  const [tone,             setTone]             = useState("professional");
+  const [industry,         setIndustry]         = useState("");
+  const [postCount,        setPostCount]        = useState("5");
+  const [extraInfo,        setExtraInfo]        = useState("");
+
+  // ── Report fields ────────────────────────────────────────────────────────
+  const [reportClient,    setReportClient]    = useState("");
+  const [month,           setMonth]           = useState("");
+  const [reportIndustry,  setReportIndustry]  = useState("");
+  const [postsCount,      setPostsCount]      = useState("");
+  const [articlesCount,   setArticlesCount]   = useState("");
+  const [imagesCount,     setImagesCount]     = useState("");
+  const [achievements,    setAchievements]    = useState("");
+  const [challenges,      setChallenges]      = useState("");
+  const [goalsNextMonth,  setGoalsNextMonth]  = useState("");
 
   // ── Common ───────────────────────────────────────────────────────────────
   const [language, setLanguage] = useState("Arabic");
@@ -80,24 +103,37 @@ export default function RunConfigModal({ projectName, webhookUrl, onConfirm, onC
 
   useEffect(() => { firstRef.current?.focus(); }, []);
 
-  const canSubmit = isSocial
-    ? clientName.trim().length > 0
-    : topic.trim().length > 0 && keyword.trim().length > 0;
+  const canSubmit =
+    mode === "social"   ? clientName.trim().length > 0 :
+    mode === "report"   ? reportClient.trim().length > 0 && month.trim().length > 0 :
+    topic.trim().length > 0 && keyword.trim().length > 0;
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!canSubmit) return;
-    if (isSocial) {
+
+    if (mode === "social") {
       onConfirm({
         language,
         client_name:       clientName.trim(),
         brand_description: brandDescription.trim(),
-        platform,
-        occasion,
-        tone,
+        platform, occasion, tone,
         industry:          industry.trim(),
         post_count:        postCount,
         extra_info:        extraInfo.trim(),
+      });
+    } else if (mode === "report") {
+      onConfirm({
+        language,
+        client_name:      reportClient.trim(),
+        month:            month.trim(),
+        industry:         reportIndustry.trim(),
+        posts_count:      postsCount,
+        articles_count:   articlesCount,
+        images_count:     imagesCount,
+        achievements:     achievements.trim(),
+        challenges:       challenges.trim(),
+        goals_next_month: goalsNextMonth.trim(),
       });
     } else {
       onConfirm({ topic: topic.trim(), keyword: keyword.trim(), language });
@@ -118,7 +154,7 @@ export default function RunConfigModal({ projectName, webhookUrl, onConfirm, onC
               {projectName}
             </p>
             <h2 className="font-headline text-lg font-bold text-on-surface">
-              {isSocial ? "إعداد البوستات" : "إعداد التشغيل"}
+              {mode === "social" ? "إعداد البوستات" : mode === "report" ? "التقرير الشهري" : "إعداد التشغيل"}
             </h2>
           </div>
           <button type="button" onClick={onClose}
@@ -131,7 +167,7 @@ export default function RunConfigModal({ projectName, webhookUrl, onConfirm, onC
         {/* Form — scrollable */}
         <form onSubmit={handleSubmit} className="overflow-y-auto px-6 py-5 space-y-4 flex-1">
 
-          {isSocial ? (
+          {mode === "social" ? (
             /* ── Social Media Fields ─────────────────────────────────── */
             <>
               {/* client_name */}
@@ -238,6 +274,116 @@ export default function RunConfigModal({ projectName, webhookUrl, onConfirm, onC
                   rows={2} maxLength={300}
                   className={inputCls + " resize-none"}
                 />
+              </div>
+            </>
+          ) : mode === "report" ? (
+            /* ── Monthly Report Fields ───────────────────────────────── */
+            <>
+              {/* client_name */}
+              <div>
+                <label className={labelCls}>اسم العميل <span className="text-error">*</span></label>
+                <input ref={firstRef} type="text" value={reportClient}
+                  onChange={(e) => setReportClient(e.target.value)}
+                  placeholder="مثال: شركة النجاح"
+                  maxLength={100} className={inputCls}
+                />
+              </div>
+
+              {/* month + industry */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className={labelCls}>الشهر <span className="text-error">*</span></label>
+                  <input type="text" value={month}
+                    onChange={(e) => setMonth(e.target.value)}
+                    placeholder="أبريل 2026"
+                    maxLength={30} className={inputCls}
+                  />
+                </div>
+                <div>
+                  <label className={labelCls}>القطاع</label>
+                  <input type="text" value={reportIndustry}
+                    onChange={(e) => setReportIndustry(e.target.value)}
+                    placeholder="مثال: تقنية"
+                    maxLength={60} className={inputCls}
+                  />
+                </div>
+              </div>
+
+              {/* counts row */}
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className={labelCls}>البوستات</label>
+                  <input type="number" min="0" value={postsCount}
+                    onChange={(e) => setPostsCount(e.target.value)}
+                    placeholder="0" className={inputCls}
+                  />
+                </div>
+                <div>
+                  <label className={labelCls}>المقالات</label>
+                  <input type="number" min="0" value={articlesCount}
+                    onChange={(e) => setArticlesCount(e.target.value)}
+                    placeholder="0" className={inputCls}
+                  />
+                </div>
+                <div>
+                  <label className={labelCls}>الصور</label>
+                  <input type="number" min="0" value={imagesCount}
+                    onChange={(e) => setImagesCount(e.target.value)}
+                    placeholder="0" className={inputCls}
+                  />
+                </div>
+              </div>
+
+              {/* achievements */}
+              <div>
+                <label className={labelCls}>أبرز الإنجازات</label>
+                <textarea value={achievements}
+                  onChange={(e) => setAchievements(e.target.value)}
+                  placeholder="ما الذي حققناه هذا الشهر..."
+                  rows={3} maxLength={600}
+                  className={inputCls + " resize-none"}
+                />
+              </div>
+
+              {/* challenges */}
+              <div>
+                <label className={labelCls}>التحديات</label>
+                <textarea value={challenges}
+                  onChange={(e) => setChallenges(e.target.value)}
+                  placeholder="ما هي التحديات التي واجهناها..."
+                  rows={2} maxLength={400}
+                  className={inputCls + " resize-none"}
+                />
+              </div>
+
+              {/* goals_next_month */}
+              <div>
+                <label className={labelCls}>أهداف الشهر القادم</label>
+                <textarea value={goalsNextMonth}
+                  onChange={(e) => setGoalsNextMonth(e.target.value)}
+                  placeholder="ما الذي نسعى لتحقيقه..."
+                  rows={2} maxLength={400}
+                  className={inputCls + " resize-none"}
+                />
+              </div>
+
+              {/* language */}
+              <div>
+                <label className={labelCls}>لغة التقرير</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {LANGUAGES.map((lang) => (
+                    <button key={lang.value} type="button"
+                      onClick={() => setLanguage(lang.value)}
+                      className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-label text-sm transition-all ${
+                        language === lang.value
+                          ? "bg-primary/15 ring-1 ring-primary/60 text-primary font-bold"
+                          : "bg-surface-container-high ring-1 ring-white/10 text-on-surface-variant hover:ring-white/20 hover:text-on-surface"
+                      }`}
+                    >
+                      <span className="text-base">{lang.flag}</span>{lang.label}
+                    </button>
+                  ))}
+                </div>
               </div>
             </>
           ) : (
