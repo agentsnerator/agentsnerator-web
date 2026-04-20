@@ -165,6 +165,21 @@ export async function upsertProfile(
   return { error: error?.message ?? null };
 }
 
+export async function upsertAgencyProfile(
+  userId: string,
+  agencyName: string,
+  country: string,
+  clientsCount: string,
+): Promise<{ error: string | null }> {
+  const { error } = await supabase
+    .from("profiles")
+    .upsert(
+      { clerk_id: userId, agency_name: agencyName, country, clients_count: clientsCount },
+      { onConflict: "clerk_id" },
+    );
+  return { error: error?.message ?? null };
+}
+
 // ─── Content Library ──────────────────────────────────────────────────────────
 
 export async function saveToLibrary(params: {
