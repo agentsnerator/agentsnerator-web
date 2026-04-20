@@ -21,7 +21,7 @@ export default function LandingNavbar() {
       <div className="max-w-6xl mx-auto px-6 h-full flex items-center justify-between gap-4">
         {/* Logo — shrink-0 + overflow-visible prevents clipping in RTL flex */}
         <Link href="/" className="flex items-center shrink-0 overflow-visible whitespace-nowrap">
-          <Logo width={280} height={62} />
+          <Logo width={210} height={46} />
         </Link>
 
         {/* Desktop links */}

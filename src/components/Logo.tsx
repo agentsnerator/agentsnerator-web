@@ -54,8 +54,8 @@ export default function Logo({ className, width = 360, height = 80 }: LogoProps)
 
       {/* النص */}
       <text x="90" y="44" fontFamily="sans-serif" fontWeight="700" fontSize="30" letterSpacing="-0.5">
-        <tspan fill="url(#logo-tg)">Agents</tspan>
-        <tspan fill="#d1d5db">Nerator</tspan>
+        <tspan fill="#ffffff">Agents</tspan>
+        <tspan fill="url(#logo-tg)">Nerator</tspan>
       </text>
 
       {/* TRADE · OWN · DEPLOY */}
