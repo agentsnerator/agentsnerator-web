@@ -18,14 +18,14 @@ export default function LandingNavbar() {
       dir="rtl"
       className="fixed top-0 w-full z-50 navbar-bg backdrop-blur-xl border-b border-white/5 h-16"
     >
-      <div className="max-w-6xl mx-auto px-6 h-full flex items-center justify-between">
-        {/* Logo */}
-        <Link href="/" className="flex items-center shrink-0">
-          <Logo width={220} height={60} />
+      <div className="max-w-6xl mx-auto px-6 h-full flex items-center justify-between gap-4">
+        {/* Logo — shrink-0 + overflow-visible prevents clipping in RTL flex */}
+        <Link href="/" className="flex items-center shrink-0 overflow-visible whitespace-nowrap">
+          <Logo width={280} height={62} />
         </Link>
 
         {/* Desktop links */}
-        <div className="hidden md:flex items-center gap-8">
+        <div className="hidden md:flex items-center gap-8 min-w-0">
           {NAV_LINKS.map(({ href, label }) => (
             <a
               key={href}
