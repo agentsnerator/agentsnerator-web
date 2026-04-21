@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
+import { X, Copy, CheckCircle2, Download, Share2, Loader2, ImageIcon, MousePointer2 } from "lucide-react";
 
 export type RunOutput = {
   title?:   string;
@@ -124,10 +125,10 @@ function PostCard({ post, index }: { post: SocialPost; index: number }) {
         <button onClick={handleCopy}
           className="flex items-center gap-1 text-[10px] font-label text-on-surface-variant hover:text-on-surface transition-colors"
         >
-          <span className="material-symbols-outlined text-[13px]"
-            style={copied ? { fontVariationSettings: "'FILL' 1" } : {}}>
-            {copied ? "check_circle" : "content_copy"}
-          </span>
+          {copied
+            ? <CheckCircle2 className="text-secondary" size={13} />
+            : <Copy size={13} />
+          }
           {copied ? "تم النسخ" : "نسخ"}
         </button>
       </div>
@@ -164,7 +165,7 @@ function PostCard({ post, index }: { post: SocialPost; index: number }) {
       {/* Image suggestion */}
       {post.image_suggestion && (
         <div className="flex items-start gap-2 bg-surface-container rounded-lg px-3 py-2">
-          <span className="material-symbols-outlined text-secondary text-[15px] mt-0.5 flex-shrink-0">image</span>
+          <ImageIcon className="text-secondary mt-0.5 flex-shrink-0" size={15} />
           <p className="text-xs font-body text-on-surface-variant leading-relaxed">{post.image_suggestion}</p>
         </div>
       )}
@@ -172,7 +173,7 @@ function PostCard({ post, index }: { post: SocialPost; index: number }) {
       {/* CTA */}
       {post.cta && (
         <div className="flex items-center gap-2 bg-surface-container rounded-lg px-3 py-2">
-          <span className="material-symbols-outlined text-orange-400 text-[15px] flex-shrink-0">ads_click</span>
+          <MousePointer2 className="text-orange-400 flex-shrink-0" size={15} />
           <p className="text-xs font-label font-bold text-orange-400">{post.cta}</p>
         </div>
       )}
@@ -287,7 +288,7 @@ export default function RunOutputModal({ output, projectName, onClose }: Props) 
             onClick={onClose}
             className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-all"
           >
-            <span className="material-symbols-outlined text-[20px]">close</span>
+            <X size={20} />
           </button>
         </div>
 
@@ -308,9 +309,7 @@ export default function RunOutputModal({ output, projectName, onClose }: Props) 
             <div className="flex flex-col items-center gap-3">
               {!imgLoaded && (
                 <div className="w-full h-64 bg-surface-container-low rounded-xl animate-pulse flex items-center justify-center">
-                  <span className="material-symbols-outlined text-4xl text-on-surface-variant animate-spin">
-                    progress_activity
-                  </span>
+                  <Loader2 className="text-on-surface-variant animate-spin" size={40} />
                 </div>
               )}
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -364,7 +363,7 @@ export default function RunOutputModal({ output, projectName, onClose }: Props) 
                 rel="noopener noreferrer"
                 className="flex items-center gap-1.5 bg-surface-container-high hover:bg-surface-bright text-on-surface px-3 py-1.5 rounded-lg font-headline font-bold text-xs transition-colors"
               >
-                <span className="material-symbols-outlined text-[15px]">download</span>
+                <Download size={15} />
                 تنزيل الصورة
               </a>
             ) : (
@@ -389,7 +388,7 @@ export default function RunOutputModal({ output, projectName, onClose }: Props) 
                   onClick={() => handleDownload(downloadFmt)}
                   className="flex items-center gap-1.5 bg-surface-container-high hover:bg-surface-bright text-on-surface px-3 py-1.5 rounded-lg font-headline font-bold text-xs transition-colors"
                 >
-                  <span className="material-symbols-outlined text-[15px]">download</span>
+                  <Download size={15} />
                   تنزيل
                 </button>
               </div>
@@ -405,10 +404,10 @@ export default function RunOutputModal({ output, projectName, onClose }: Props) 
                 onClick={() => setShareOpen((v) => !v)}
                 className="flex items-center gap-1.5 bg-surface-container-high hover:bg-surface-bright text-on-surface-variant hover:text-on-surface px-3 py-2 rounded-lg font-headline font-bold text-xs transition-all"
               >
-                <span className="material-symbols-outlined text-[15px]">share</span>
+                <Share2 size={15} />
                 مشاركة
-                <span className="material-symbols-outlined text-[13px]">
-                  {shareOpen ? "expand_more" : "expand_less"}
+                <span className="text-[13px]">
+                  {shareOpen ? "▲" : "▼"}
                 </span>
               </button>
 
@@ -456,10 +455,10 @@ export default function RunOutputModal({ output, projectName, onClose }: Props) 
                     onClick={handleShareCopy}
                     className="w-full flex items-center gap-3 px-4 py-2.5 text-left hover:bg-surface-bright transition-colors font-label text-sm text-on-surface"
                   >
-                    <span className="material-symbols-outlined text-[16px] flex-shrink-0"
-                      style={copiedText ? { fontVariationSettings: "'FILL' 1" } : {}}>
-                      {copiedText ? "check_circle" : "content_copy"}
-                    </span>
+                    {copiedText
+                      ? <CheckCircle2 className="flex-shrink-0" size={16} />
+                      : <Copy className="flex-shrink-0" size={16} />
+                    }
                     {copiedText ? "تم النسخ ✓" : "نسخ النص كاملاً"}
                   </button>
 
@@ -476,12 +475,12 @@ export default function RunOutputModal({ output, projectName, onClose }: Props) 
             >
               {copied ? (
                 <>
-                  <span className="material-symbols-outlined text-[15px] text-secondary" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                  <CheckCircle2 className="text-secondary" size={15} />
                   تم النسخ ✓
                 </>
               ) : (
                 <>
-                  <span className="material-symbols-outlined text-[15px]">content_copy</span>
+                  <Copy size={15} />
                   {isImage ? "نسخ الرابط" : posts ? "نسخ الكل" : "نسخ"}
                 </>
               )}

@@ -9,6 +9,7 @@ import ProjectCard, { type Project } from "@/components/dashboard/ProjectCard";
 import NewProjectModal from "@/components/dashboard/NewProjectModal";
 import LibraryTab from "@/components/dashboard/LibraryTab";
 import { getProjects } from "@/lib/queries";
+import { Plus, AlertCircle, LayoutGrid, Library, Wallet } from "lucide-react";
 
 export default function DashboardPage() {
   const { user } = useUser();
@@ -27,6 +28,11 @@ export default function DashboardPage() {
   }
 
   useEffect(() => { load(); }, []);
+
+  const TAB_ICONS = {
+    projects: <LayoutGrid size={16} />,
+    library:  <Library size={16} />,
+  };
 
   return (
     <>
@@ -47,7 +53,7 @@ export default function DashboardPage() {
             onClick={() => setShowModal(true)}
             className="flex items-center gap-2 bg-gradient-to-br from-primary to-primary-dim text-on-primary px-6 py-3 rounded-lg font-headline font-bold text-sm tracking-tight active:scale-95 transition-transform hover:shadow-[0_0_30px_rgba(219,144,255,0.3)] self-start md:self-auto"
           >
-            <span className="material-symbols-outlined text-[18px]">add</span>
+            <Plus size={18} />
             New Project
           </button>
         </header>
@@ -58,8 +64,8 @@ export default function DashboardPage() {
         {/* Tabs */}
         <div className="flex gap-1 mb-8 bg-surface-container-low p-1 rounded-xl w-fit">
           {[
-            { key: "projects", label: "مشاريعي", icon: "grid_view"   },
-            { key: "library",  label: "مكتبتي",  icon: "inventory_2" },
+            { key: "projects", label: "مشاريعي" },
+            { key: "library",  label: "مكتبتي"  },
           ].map((tab) => (
             <button
               key={tab.key}
@@ -70,7 +76,7 @@ export default function DashboardPage() {
                   : "text-on-surface-variant hover:text-on-surface"
               }`}
             >
-              <span className="material-symbols-outlined text-[16px]">{tab.icon}</span>
+              {TAB_ICONS[tab.key as "projects" | "library"]}
               {tab.label}
             </button>
           ))}
@@ -118,7 +124,7 @@ export default function DashboardPage() {
           {/* Error */}
           {!loading && error && (
             <div className="bg-error/10 border border-error/20 rounded-xl p-6 flex items-start gap-3">
-              <span className="material-symbols-outlined text-error mt-0.5">error</span>
+              <AlertCircle className="text-error mt-0.5" size={20} />
               <div>
                 <p className="font-headline font-bold text-error mb-1">
                   Failed to load projects
@@ -138,9 +144,7 @@ export default function DashboardPage() {
           {!loading && !error && projects.length === 0 && (
             <div className="text-center py-20">
               <div className="w-20 h-20 rounded-full bg-surface-container-high flex items-center justify-center mx-auto mb-6">
-                <span className="material-symbols-outlined text-4xl text-on-surface-variant">
-                  folder_off
-                </span>
+                <Library className="text-on-surface-variant" size={40} />
               </div>
               <h3 className="font-headline text-xl font-bold mb-2">
                 No projects yet
@@ -169,9 +173,7 @@ export default function DashboardPage() {
                 className="bg-surface-container-low rounded-xl p-6 border border-dashed border-primary/20 hover:border-primary/40 transition-all duration-300 flex flex-col items-center justify-center min-h-[280px] gap-4 group"
               >
                 <div className="w-14 h-14 rounded-full bg-surface-container-highest flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <span className="material-symbols-outlined text-primary text-3xl">
-                    add
-                  </span>
+                  <Plus className="text-primary" size={30} />
                 </div>
                 <div className="text-center">
                   <h3 className="font-headline font-bold text-lg mb-1">
@@ -191,12 +193,7 @@ export default function DashboardPage() {
         <section className="mt-16 bg-surface-container-low rounded-xl p-8 flex flex-col md:flex-row items-center justify-between gap-6 border border-outline-variant/5">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-xl bg-surface-container-high flex items-center justify-center">
-              <span
-                className="material-symbols-outlined text-secondary text-2xl"
-                style={{ fontVariationSettings: "'FILL' 1" }}
-              >
-                account_balance_wallet
-              </span>
+              <Wallet className="text-secondary" size={24} />
             </div>
             <div>
               <span className="text-xs font-label text-on-surface-variant uppercase tracking-widest block mb-1">

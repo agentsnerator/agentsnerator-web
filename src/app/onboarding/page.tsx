@@ -5,6 +5,7 @@ import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import Logo from "@/components/Logo";
 import { upsertAgencyProfile, createProject } from "@/lib/queries";
+import { ArrowRight, CheckCircle2, Loader2 } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Step = 1 | 2 | 3;
@@ -100,6 +101,8 @@ export default function OnboardingPage() {
       createProject(
         clientName.trim(),
         clientIndustry.trim() ? `${clientIndustry.trim()} — ${clientTone} — ${clientLanguage}` : "",
+        user.id,
+        "",
       ),
     ]);
 
@@ -109,13 +112,16 @@ export default function OnboardingPage() {
       return;
     }
 
+    // Mark onboarding complete in Clerk metadata → middleware won't redirect back
+    await fetch("/api/complete-onboarding", { method: "POST" });
+
     router.push("/dashboard");
   }
 
   if (!isLoaded) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-bg">
-        <span className="material-symbols-outlined text-4xl text-primary animate-spin">progress_activity</span>
+        <Loader2 className="text-primary animate-spin" size={40} />
       </div>
     );
   }
@@ -206,7 +212,7 @@ export default function OnboardingPage() {
                 className="w-full flex items-center justify-center gap-2 bg-gradient-to-br from-primary to-primary-dim text-on-primary py-3.5 rounded-xl font-headline font-bold hover:shadow-[0_0_30px_rgba(219,144,255,0.3)] active:scale-[0.98] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 التالي
-                <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+                <ArrowRight size={18} />
               </button>
             </form>
           )}
@@ -281,7 +287,7 @@ export default function OnboardingPage() {
                   className="flex-[2] flex items-center justify-center gap-2 bg-gradient-to-br from-primary to-primary-dim text-on-primary py-3 rounded-xl font-headline font-bold hover:shadow-[0_0_30px_rgba(219,144,255,0.3)] active:scale-[0.98] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   التالي
-                  <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+                  <ArrowRight size={18} />
                 </button>
               </div>
             </form>
@@ -334,9 +340,7 @@ export default function OnboardingPage() {
                     <ul className="space-y-2 flex-1">
                       {plan.features.map((f) => (
                         <li key={f} className="flex items-center gap-2 text-xs font-body text-on-surface/90">
-                          <span className="material-symbols-outlined text-[14px] text-green-400" style={{ fontVariationSettings: "'FILL' 1" }}>
-                            check_circle
-                          </span>
+                          <CheckCircle2 className="text-green-400 flex-shrink-0" size={14} />
                           {f}
                         </li>
                       ))}

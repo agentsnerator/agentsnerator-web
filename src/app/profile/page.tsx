@@ -7,6 +7,7 @@ import Image from "next/image";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { getProfile, upsertProfile, type Profile } from "@/lib/queries";
+import { User, AlertCircle, CheckCircle2, Square } from "lucide-react";
 
 export default function ProfilePage() {
   const { user, isLoaded, isSignedIn } = useUser();
@@ -131,9 +132,7 @@ export default function ProfilePage() {
                 />
               ) : (
                 <div className="w-20 h-20 rounded-full bg-surface-container-high flex items-center justify-center ring-2 ring-primary/40">
-                  <span className="material-symbols-outlined text-4xl text-on-surface-variant">
-                    person
-                  </span>
+                  <User className="text-on-surface-variant" size={40} />
                 </div>
               )}
               {/* Green online dot */}
@@ -191,9 +190,7 @@ export default function ProfilePage() {
               Username
             </label>
             <div className="relative">
-              <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px] pointer-events-none">
-                badge
-              </span>
+              <Square className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none" size={18} />
               <input
                 type="text"
                 value={username}
@@ -210,9 +207,7 @@ export default function ProfilePage() {
             {/* Error */}
             {error && (
               <p className="text-error font-label text-sm flex items-center gap-2">
-                <span className="material-symbols-outlined text-[16px]" style={{ fontVariationSettings: "'FILL' 1" }}>
-                  error
-                </span>
+                <AlertCircle size={16} />
                 {error}
               </p>
             )}
@@ -231,16 +226,12 @@ export default function ProfilePage() {
               </>
             ) : saved ? (
               <>
-                <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>
-                  check_circle
-                </span>
+                <CheckCircle2 size={18} />
                 تم الحفظ ✅
               </>
             ) : (
               <>
-                <span className="material-symbols-outlined text-[18px]">
-                  save
-                </span>
+                <Square size={18} />
                 حفظ التغييرات
               </>
             )}

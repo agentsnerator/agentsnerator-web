@@ -1,3 +1,8 @@
+import {
+  Bot, Settings, Square,
+  type LucideIcon,
+} from "lucide-react";
+
 export type Agent = {
   id: string;
   name: string;
@@ -17,6 +22,15 @@ type ScoreTier = {
   ringColor: string;     // SVG stroke color (hex)
   glowClass: string;
 };
+
+// Map legacy Material Symbol names to Lucide components
+function getAvatarIcon(iconName: string): LucideIcon {
+  const map: Record<string, LucideIcon> = {
+    smart_toy: Bot,
+    settings:  Settings,
+  };
+  return map[iconName] ?? Square;
+}
 
 function getScoreTier(score: number): ScoreTier {
   if (score >= 90)
@@ -69,6 +83,7 @@ export default function AgentCard({
 }) {
   const tier = getScoreTier(agent.score);
   const dashOffset = CIRCUMFERENCE * (1 - agent.score / 100);
+  const AvatarIcon = getAvatarIcon(agent.avatarIcon);
 
   return (
     <div
@@ -96,12 +111,10 @@ export default function AgentCard({
                 : "bg-surface-container-high border border-outline-variant/10"}
             `}
           >
-            <span
-              className={`material-symbols-outlined text-3xl ${featured ? "text-primary" : "text-on-surface-variant"}`}
-              style={{ fontVariationSettings: "'FILL' 1" }}
-            >
-              {agent.avatarIcon}
-            </span>
+            <AvatarIcon
+              className={featured ? "text-primary" : "text-on-surface-variant"}
+              size={30}
+            />
             {/* Status dot + tooltip */}
             <span className="absolute -bottom-1 -right-1 group/dot">
               <span
@@ -150,9 +163,7 @@ export default function AgentCard({
         <div className="flex items-center gap-2 flex-wrap">
           {agent.isCEO && (
             <span className="flex items-center gap-1 px-2 py-0.5 bg-primary/20 text-primary border border-primary/30 rounded text-[9px] font-label font-bold uppercase tracking-wider">
-              <span className="material-symbols-outlined text-[11px]" style={{ fontVariationSettings: "'FILL' 1" }}>
-                star
-              </span>
+              <Square size={11} />
               CEO
             </span>
           )}
@@ -201,9 +212,7 @@ export default function AgentCard({
             </p>
           </div>
           <button className="flex items-center gap-1 text-xs font-label font-bold text-on-surface-variant hover:text-primary transition-colors">
-            <span className="material-symbols-outlined text-[14px]">
-              settings
-            </span>
+            <Settings size={14} />
             Manage
           </button>
         </div>

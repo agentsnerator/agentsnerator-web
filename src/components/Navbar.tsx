@@ -5,6 +5,7 @@ import { useUser, UserButton, SignInButton } from "@clerk/nextjs";
 import Logo from "@/components/Logo";
 import { usePathname } from "next/navigation";
 import { useTheme } from "@/components/ThemeProvider";
+import { Search, Sun, Moon } from "lucide-react";
 
 export default function Navbar() {
   const { isSignedIn, user, isLoaded } = useUser();
@@ -49,9 +50,7 @@ export default function Navbar() {
         <div className="flex items-center gap-4">
           {/* Search bar */}
           <div className="relative hidden lg:block">
-            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-white/30 text-[18px] pointer-events-none">
-              search
-            </span>
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30 pointer-events-none" size={18} />
             <input
               type="text"
               placeholder="Search Agents..."
@@ -65,9 +64,7 @@ export default function Navbar() {
             aria-label="Toggle theme"
             className="w-9 h-9 flex items-center justify-center rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-all duration-200"
           >
-            <span className="material-symbols-outlined text-[20px]">
-              {theme === "dark" ? "light_mode" : "dark_mode"}
-            </span>
+            {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
           </button>
 
           {/* Auth section */}

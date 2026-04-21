@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { X, AlertCircle, Bot, Square } from "lucide-react";
 
 const ROLES = ["Writer", "SEO / Keywords", "Image Gen", "Proofreader", "Coder", "Researcher", "Analyst", "Custom"];
 const SCORE_TIERS = [
@@ -63,7 +64,7 @@ export default function AddAgentModal({ projectId, onClose, onCreated }: Props) 
             onClick={onClose}
             className="w-8 h-8 rounded-lg bg-surface-container-high flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-colors"
           >
-            <span className="material-symbols-outlined text-[18px]">close</span>
+            <X size={18} />
           </button>
         </div>
 
@@ -137,9 +138,7 @@ export default function AddAgentModal({ projectId, onClose, onCreated }: Props) 
 
           {/* Barcode note */}
           <div className="flex items-start gap-2 bg-secondary/5 border border-secondary/10 rounded-lg p-3">
-            <span className="material-symbols-outlined text-[16px] text-secondary mt-0.5 flex-shrink-0">
-              qr_code
-            </span>
+            <Square className="text-secondary mt-0.5 flex-shrink-0" size={16} />
             <p className="text-xs font-body text-on-surface-variant leading-relaxed">
               A unique <span className="text-secondary font-medium">AGT-</span> barcode will be generated automatically upon creation.
             </p>
@@ -148,7 +147,7 @@ export default function AddAgentModal({ projectId, onClose, onCreated }: Props) 
           {/* Error */}
           {err && (
             <div className="flex items-start gap-2 bg-error/10 border border-error/20 rounded-lg p-3">
-              <span className="material-symbols-outlined text-[16px] text-error mt-0.5 flex-shrink-0">error</span>
+              <AlertCircle className="text-error mt-0.5 flex-shrink-0" size={16} />
               <p className="text-xs font-body text-error">{err}</p>
             </div>
           )}
@@ -174,7 +173,7 @@ export default function AddAgentModal({ projectId, onClose, onCreated }: Props) 
                 </>
               ) : (
                 <>
-                  <span className="material-symbols-outlined text-[16px]">smart_toy</span>
+                  <Bot size={16} />
                   Add Agent
                 </>
               )}

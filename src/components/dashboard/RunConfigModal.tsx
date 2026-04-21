@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { X, FileText, KeyRound, Globe, PlayCircle } from "lucide-react";
 
 export type RunConfig = {
   language:           string;
@@ -185,7 +186,7 @@ export default function RunConfigModal({ projectName, webhookUrl, onConfirm, onC
           <button type="button" onClick={onClose}
             className="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-all"
           >
-            <span className="material-symbols-outlined text-[20px]">close</span>
+            <X size={20} />
           </button>
         </div>
 
@@ -501,7 +502,7 @@ export default function RunConfigModal({ projectName, webhookUrl, onConfirm, onC
               {/* Topic */}
               <div>
                 <label className="flex items-center gap-1.5 font-label text-xs text-on-surface-variant uppercase tracking-wider mb-1.5">
-                  <span className="material-symbols-outlined text-[14px] text-primary">topic</span>
+                  <FileText className="text-primary" size={14} />
                   الموضوع <span className="text-error">*</span>
                 </label>
                 <input ref={firstRef} type="text" value={topic}
@@ -514,7 +515,7 @@ export default function RunConfigModal({ projectName, webhookUrl, onConfirm, onC
               {/* Keyword */}
               <div>
                 <label className="flex items-center gap-1.5 font-label text-xs text-on-surface-variant uppercase tracking-wider mb-1.5">
-                  <span className="material-symbols-outlined text-[14px] text-secondary">key</span>
+                  <KeyRound className="text-secondary" size={14} />
                   الكلمة الدلالية <span className="text-error">*</span>
                 </label>
                 <input type="text" value={keyword}
@@ -527,7 +528,7 @@ export default function RunConfigModal({ projectName, webhookUrl, onConfirm, onC
               {/* Language */}
               <div>
                 <label className="flex items-center gap-1.5 font-label text-xs text-on-surface-variant uppercase tracking-wider mb-1.5">
-                  <span className="material-symbols-outlined text-[14px] text-on-surface-variant">language</span>
+                  <Globe className="text-on-surface-variant" size={14} />
                   اللغة
                 </label>
                 <div className="grid grid-cols-2 gap-2">
@@ -558,9 +559,7 @@ export default function RunConfigModal({ projectName, webhookUrl, onConfirm, onC
             <button type="submit" disabled={!canSubmit}
               className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-br from-primary to-primary-dim text-on-primary py-3 rounded-xl font-headline font-bold text-sm hover:shadow-[0_0_24px_rgba(219,144,255,0.35)] active:scale-[0.98] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>
-                play_circle
-              </span>
+              <PlayCircle size={18} />
               تشغيل
             </button>
           </div>

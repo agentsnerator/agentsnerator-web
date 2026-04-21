@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { FolderOpen, Bot, ArrowRight, Square } from "lucide-react";
 
 export type Project = {
   id: string;
@@ -57,12 +58,7 @@ export default function ProjectCard({ project }: { project: Project }) {
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center flex-shrink-0">
-            <span
-              className="material-symbols-outlined text-primary"
-              style={{ fontVariationSettings: "'FILL' 1" }}
-            >
-              folder_special
-            </span>
+            <FolderOpen className="text-primary" size={20} />
           </div>
           <div>
             <h3 className="font-headline font-bold text-lg leading-tight">
@@ -82,9 +78,7 @@ export default function ProjectCard({ project }: { project: Project }) {
         </div>
         {/* Agent count badge */}
         <div className="flex items-center gap-1.5 bg-surface-container px-3 py-1.5 rounded-lg border border-outline-variant/10">
-          <span className="material-symbols-outlined text-[14px] text-primary">
-            smart_toy
-          </span>
+          <Bot className="text-primary" size={14} />
           <span className="font-headline font-bold text-sm text-on-surface">
             {project.agentCount}
           </span>
@@ -101,9 +95,7 @@ export default function ProjectCard({ project }: { project: Project }) {
 
       {/* CEO Agent */}
       <div className="flex items-center gap-2 bg-surface-container rounded-lg px-3 py-2 border border-outline-variant/5">
-        <span className="material-symbols-outlined text-[14px] text-secondary">
-          star
-        </span>
+        <Square className="text-secondary" size={14} />
         <span className="text-xs font-label text-on-surface-variant uppercase tracking-wider">
           CEO:
         </span>
@@ -154,9 +146,7 @@ export default function ProjectCard({ project }: { project: Project }) {
           className="flex items-center gap-1.5 text-primary font-headline font-bold text-sm hover:gap-2.5 transition-all"
         >
           Open
-          <span className="material-symbols-outlined text-[16px]">
-            arrow_forward
-          </span>
+          <ArrowRight size={16} />
         </Link>
       </div>
     </div>

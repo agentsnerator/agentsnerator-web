@@ -114,10 +114,21 @@ export async function getProjectAgents(projectId: string): Promise<{
 }
 
 // ─── Insert new project ───────────────────────────────────────────────────────
-export async function createProject(name: string, description: string) {
+export async function createProject(
+  name: string,
+  description: string,
+  ownerId?: string,
+  webhookUrl?: string,
+) {
   const { data, error } = await supabase
     .from("projects")
-    .insert({ name, description, status: "building" })
+    .insert({
+      name,
+      description,
+      status: "building",
+      owner_id:    ownerId    ?? null,
+      webhook_url: webhookUrl ?? "",
+    })
     .select()
     .single();
 

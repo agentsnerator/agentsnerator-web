@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import { getLibraryItems, deleteLibraryItem } from "@/lib/queries";
+import { X, Copy, CheckCircle2, Trash2, Eye, Library, ImageIcon, Square, type LucideIcon } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type LibraryItem = {
@@ -63,11 +64,11 @@ function formatDate(iso: string): string {
   return `${dd}/${mm}/${yyyy}`;
 }
 
-function getTypeIcon(contentType: string): string {
-  if (contentType === "image") return "image";
-  if (contentType === "video") return "videocam";
-  if (contentType === "file")  return "attach_file";
-  return "article";
+function getTypeIconComponent(contentType: string): LucideIcon {
+  if (contentType === "image") return ImageIcon;
+  if (contentType === "video") return Square;
+  if (contentType === "file")  return Square;
+  return Square;
 }
 
 function getTypeLabel(contentType: string): string {
@@ -120,7 +121,7 @@ function ViewModal({ item, onClose }: { item: LibraryItem; onClose: () => void }
             onClick={onClose}
             className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-all"
           >
-            <span className="material-symbols-outlined text-[20px]">close</span>
+            <X size={20} />
           </button>
         </div>
 
@@ -177,12 +178,12 @@ function ViewModal({ item, onClose }: { item: LibraryItem; onClose: () => void }
             >
               {copied ? (
                 <>
-                  <span className="material-symbols-outlined text-[15px] text-secondary" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                  <CheckCircle2 className="text-secondary" size={15} />
                   تم النسخ ✓
                 </>
               ) : (
                 <>
-                  <span className="material-symbols-outlined text-[15px]">content_copy</span>
+                  <Copy size={15} />
                   نسخ
                 </>
               )}
@@ -286,9 +287,7 @@ export default function LibraryTab({ userId }: Props) {
       {filtered.length === 0 && (
         <div className="text-center py-20">
           <div className="w-20 h-20 rounded-full bg-surface-container-high flex items-center justify-center mx-auto mb-6">
-            <span className="material-symbols-outlined text-4xl text-on-surface-variant">
-              inventory_2
-            </span>
+            <Library className="text-on-surface-variant" size={40} />
           </div>
           <h3 className="font-headline text-xl font-bold mb-2">المكتبة فارغة</h3>
           <p className="text-on-surface-variant font-body text-sm">
@@ -302,84 +301,82 @@ export default function LibraryTab({ userId }: Props) {
       {/* Grid */}
       {filtered.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filtered.map((item) => (
-            <div
-              key={item.id}
-              className="bg-surface-container-low rounded-xl p-5 flex flex-col gap-3 border border-outline-variant/5 hover:border-outline-variant/20 transition-all duration-200"
-            >
-              {/* Card header */}
-              <div className="flex items-start justify-between gap-2">
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="w-9 h-9 rounded-lg bg-surface-container-high flex items-center justify-center flex-shrink-0">
-                    <span
-                      className="material-symbols-outlined text-primary text-[18px]"
-                      style={{ fontVariationSettings: "'FILL' 1" }}
-                    >
-                      {getTypeIcon(item.content_type)}
-                    </span>
+          {filtered.map((item) => {
+            const TypeIcon = getTypeIconComponent(item.content_type);
+            return (
+              <div
+                key={item.id}
+                className="bg-surface-container-low rounded-xl p-5 flex flex-col gap-3 border border-outline-variant/5 hover:border-outline-variant/20 transition-all duration-200"
+              >
+                {/* Card header */}
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="w-9 h-9 rounded-lg bg-surface-container-high flex items-center justify-center flex-shrink-0">
+                      <TypeIcon className="text-primary" size={18} />
+                    </div>
+                    <h3 className="font-headline font-bold text-sm text-on-surface truncate">
+                      {cleanTitle(item.title) || "بدون عنوان"}
+                    </h3>
                   </div>
-                  <h3 className="font-headline font-bold text-sm text-on-surface truncate">
-                    {cleanTitle(item.title) || "بدون عنوان"}
-                  </h3>
+                  <button
+                    onClick={() => handleDelete(item.id)}
+                    disabled={deleting === item.id}
+                    className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-lg text-error/60 hover:text-error hover:bg-error/10 transition-all disabled:opacity-40"
+                    title="حذف"
+                  >
+                    {deleting === item.id ? (
+                      <span className="w-3.5 h-3.5 border-2 border-error/30 border-t-error rounded-full animate-spin" />
+                    ) : (
+                      <Trash2 size={16} />
+                    )}
+                  </button>
                 </div>
+
+                {/* Badge + date */}
+                <div className="flex items-center justify-between gap-2">
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-label font-bold uppercase tracking-wider ${getTypeBadgeColor(item.content_type)}`}>
+                    {getTypeLabel(item.content_type)}
+                  </span>
+                  <span className="text-[10px] font-label text-on-surface-variant">
+                    {formatDate(item.created_at)}
+                  </span>
+                </div>
+
+                {/* Preview (text only) */}
+                {item.content_type === "text" && item.content && (() => {
+                  const preview = cleanPreview(item.content);
+                  return (
+                    <p className="text-on-surface-variant text-xs font-body leading-relaxed line-clamp-3">
+                      {preview.slice(0, 120)}{preview.length > 120 ? "..." : ""}
+                    </p>
+                  );
+                })()}
+
+                {/* Tags */}
+                {Array.isArray(item.tags) && item.tags.length > 0 && (
+                  <div className="flex gap-1 flex-wrap">
+                    {item.tags.slice(0, 3).map((tag) => (
+                      <span
+                        key={tag}
+                        className="px-1.5 py-0.5 bg-surface-bright text-on-surface-variant rounded text-[9px] font-label uppercase tracking-wider"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                {/* View button */}
                 <button
-                  onClick={() => handleDelete(item.id)}
-                  disabled={deleting === item.id}
-                  className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-lg text-error/60 hover:text-error hover:bg-error/10 transition-all disabled:opacity-40"
-                  title="حذف"
+                  onClick={() => setViewItem(item)}
+                  className="mt-auto flex items-center justify-center gap-1.5 bg-surface-container-high hover:bg-surface-bright text-on-surface px-3 py-2 rounded-lg font-headline font-bold text-xs transition-colors w-full"
                 >
-                  {deleting === item.id ? (
-                    <span className="w-3.5 h-3.5 border-2 border-error/30 border-t-error rounded-full animate-spin" />
-                  ) : (
-                    <span className="material-symbols-outlined text-[16px]">delete</span>
-                  )}
+                  <Eye size={15} />
+                  عرض
                 </button>
               </div>
-
-              {/* Badge + date */}
-              <div className="flex items-center justify-between gap-2">
-                <span className={`px-2 py-0.5 rounded text-[10px] font-label font-bold uppercase tracking-wider ${getTypeBadgeColor(item.content_type)}`}>
-                  {getTypeLabel(item.content_type)}
-                </span>
-                <span className="text-[10px] font-label text-on-surface-variant">
-                  {formatDate(item.created_at)}
-                </span>
-              </div>
-
-              {/* Preview (text only) */}
-              {item.content_type === "text" && item.content && (() => {
-                const preview = cleanPreview(item.content);
-                return (
-                  <p className="text-on-surface-variant text-xs font-body leading-relaxed line-clamp-3">
-                    {preview.slice(0, 120)}{preview.length > 120 ? "..." : ""}
-                  </p>
-                );
-              })()}
-
-              {/* Tags */}
-              {Array.isArray(item.tags) && item.tags.length > 0 && (
-                <div className="flex gap-1 flex-wrap">
-                  {item.tags.slice(0, 3).map((tag) => (
-                    <span
-                      key={tag}
-                      className="px-1.5 py-0.5 bg-surface-bright text-on-surface-variant rounded text-[9px] font-label uppercase tracking-wider"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              )}
-
-              {/* View button */}
-              <button
-                onClick={() => setViewItem(item)}
-                className="mt-auto flex items-center justify-center gap-1.5 bg-surface-container-high hover:bg-surface-bright text-on-surface px-3 py-2 rounded-lg font-headline font-bold text-xs transition-colors w-full"
-              >
-                <span className="material-symbols-outlined text-[15px]">visibility</span>
-                عرض
-              </button>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 

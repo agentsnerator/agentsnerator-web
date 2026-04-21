@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { X, Info, AlertCircle, Plus } from "lucide-react";
 
 type Props = {
   onClose:   () => void;
@@ -56,7 +57,7 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
             onClick={onClose}
             className="w-8 h-8 rounded-lg bg-surface-container-high flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-colors"
           >
-            <span className="material-symbols-outlined text-[18px]">close</span>
+            <X size={18} />
           </button>
         </div>
 
@@ -97,9 +98,7 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
 
           {/* Info note */}
           <div className="flex items-start gap-2 bg-primary/5 border border-primary/10 rounded-lg p-3">
-            <span className="material-symbols-outlined text-[16px] text-primary mt-0.5 flex-shrink-0">
-              info
-            </span>
+            <Info className="text-primary mt-0.5 flex-shrink-0" size={16} />
             <p className="text-xs font-body text-on-surface-variant leading-relaxed">
               After creation, you'll assign a{" "}
               <span className="text-primary font-medium">CEO Agent</span> to
@@ -110,7 +109,7 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
           {/* Error */}
           {err && (
             <div className="flex items-start gap-2 bg-error/10 border border-error/20 rounded-lg p-3">
-              <span className="material-symbols-outlined text-[16px] text-error mt-0.5 flex-shrink-0">error</span>
+              <AlertCircle className="text-error mt-0.5 flex-shrink-0" size={16} />
               <p className="text-xs font-body text-error">{err}</p>
             </div>
           )}
@@ -136,9 +135,7 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
                 </>
               ) : (
                 <>
-                  <span className="material-symbols-outlined text-[16px]">
-                    add
-                  </span>
+                  <Plus size={16} />
                   Create Project
                 </>
               )}

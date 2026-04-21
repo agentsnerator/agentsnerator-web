@@ -12,6 +12,7 @@ import RunConfigModal, { type RunConfig } from "@/components/dashboard/RunConfig
 import RunOutputModal, { type RunOutput } from "@/components/dashboard/RunOutputModal";
 import Toast, { type ToastData } from "@/components/Toast";
 import { getProject, getProjectAgents, saveToLibrary } from "@/lib/queries";
+import { Plus, PlayCircle, Bot, Square, FolderOpen } from "lucide-react";
 
 const CEO_WEBHOOK = "https://n8n.passtop.store/webhook/ceo-agent";
 
@@ -284,9 +285,7 @@ export default function ProjectDetailPage() {
       <>
         <Navbar />
         <main className="pt-40 pb-24 max-w-7xl mx-auto px-8 text-center">
-          <span className="material-symbols-outlined text-6xl text-on-surface-variant mb-4 block">
-            folder_off
-          </span>
+          <FolderOpen className="text-on-surface-variant mb-4 mx-auto" size={64} />
           <h1 className="font-headline text-3xl font-bold mb-2">Project not found</h1>
           <p className="text-on-surface-variant mb-6">
             {error ?? "This project doesn't exist or was removed."}
@@ -320,7 +319,7 @@ export default function ProjectDetailPage() {
           <Link href="/dashboard" className="hover:text-primary transition-colors">
             Dashboard
           </Link>
-          <span className="material-symbols-outlined text-[14px]">chevron_right</span>
+          <span className="text-[14px]">›</span>
           <span className="text-on-surface">{project.name}</span>
         </nav>
 
@@ -370,7 +369,7 @@ export default function ProjectDetailPage() {
               onClick={() => setShowAddAgent(true)}
               className="flex items-center gap-2 bg-surface-container-high text-on-surface px-5 py-3 rounded-lg font-headline font-bold text-sm hover:bg-surface-bright transition-colors"
             >
-              <span className="material-symbols-outlined text-[18px]">add</span>
+              <Plus size={18} />
               Add Agent
             </button>
             <button
@@ -385,9 +384,7 @@ export default function ProjectDetailPage() {
                 </>
               ) : (
                 <>
-                  <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>
-                    play_circle
-                  </span>
+                  <PlayCircle size={18} />
                   Run Project
                 </>
               )}
@@ -398,9 +395,7 @@ export default function ProjectDetailPage() {
         {/* Agent count strip */}
         <div className="flex items-center gap-6 mb-10 pb-10 border-b border-outline-variant/10 flex-wrap">
           <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-[18px] text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>
-              smart_toy
-            </span>
+            <Bot className="text-primary" size={18} />
             <span className="font-headline font-bold text-2xl">{agents.length}</span>
             <span className="text-on-surface-variant font-label text-sm">Total Agents</span>
           </div>
@@ -423,9 +418,7 @@ export default function ProjectDetailPage() {
         {ceoAgent ? (
           <section className="mb-10">
             <h2 className="font-headline text-lg font-bold text-on-surface-variant uppercase tracking-widest mb-4 flex items-center gap-2">
-              <span className="material-symbols-outlined text-primary text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>
-                star
-              </span>
+              <Square className="text-primary" size={18} />
               CEO Agent
             </h2>
             <div className="max-w-sm">
@@ -442,7 +435,7 @@ export default function ProjectDetailPage() {
               className="bg-surface-container-low rounded-xl border border-dashed border-primary/30 hover:border-primary/60 transition-all p-8 flex items-center gap-4 max-w-sm"
             >
               <div className="w-12 h-12 rounded-full bg-surface-container-highest flex items-center justify-center">
-                <span className="material-symbols-outlined text-primary text-2xl">add</span>
+                <Plus className="text-primary" size={24} />
               </div>
               <div className="text-left">
                 <p className="font-headline font-bold">Assign CEO Agent</p>
@@ -458,7 +451,7 @@ export default function ProjectDetailPage() {
         <section>
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-headline text-lg font-bold text-on-surface-variant uppercase tracking-widest flex items-center gap-2">
-              <span className="material-symbols-outlined text-[18px]">hub</span>
+              <Square size={18} />
               Sub-Agents
               <span className="px-2 py-0.5 bg-surface-container text-on-surface-variant rounded text-xs font-label">
                 {subAgents.length}
@@ -477,7 +470,7 @@ export default function ProjectDetailPage() {
               className="bg-surface-container-low rounded-xl border border-dashed border-primary/20 hover:border-primary/40 transition-all duration-300 flex flex-col items-center justify-center min-h-[260px] gap-3 group"
             >
               <div className="w-12 h-12 rounded-full bg-surface-container-highest flex items-center justify-center group-hover:scale-110 transition-transform">
-                <span className="material-symbols-outlined text-primary text-2xl">add</span>
+                <Plus className="text-primary" size={24} />
               </div>
               <p className="text-sm font-headline font-bold">Add Sub-Agent</p>
               <p className="text-xs font-body text-on-surface-variant text-center px-4">
