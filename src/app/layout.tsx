@@ -38,8 +38,8 @@ export default function RootLayout({
     <ClerkProvider
       signInUrl="/sign-in"
       signUpUrl="/sign-up"
+      signUpForceRedirectUrl="/onboarding"
       signInFallbackRedirectUrl="/dashboard"
-      signUpFallbackRedirectUrl="/onboarding"
     >
       {/* suppressHydrationWarning لأن ThemeProvider يعدّل className من client side */}
       <html
