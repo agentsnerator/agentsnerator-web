@@ -126,8 +126,8 @@ export async function createProject(
       name,
       description,
       status: "building",
-      owner_id:    ownerId    ?? null,
-      webhook_url: webhookUrl ?? "",
+      owner_clerk_id: ownerId    ?? null,
+      webhook_url:    webhookUrl ?? "",
     })
     .select()
     .single();
