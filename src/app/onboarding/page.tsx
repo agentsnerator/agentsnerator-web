@@ -137,7 +137,7 @@ export default function OnboardingPage() {
     }
 
     console.log("Step 5: Redirecting to dashboard...");
-    router.push("/dashboard");
+    window.location.href = "/dashboard";
   }
 
   if (!isLoaded) {
