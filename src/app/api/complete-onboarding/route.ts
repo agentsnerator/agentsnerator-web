@@ -7,10 +7,16 @@ export async function POST() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const client = await clerkClient();
-  await client.users.updateUserMetadata(userId, {
-    publicMetadata: { onboardingComplete: true },
-  });
+  try {
+    const client = await clerkClient();
+    await client.users.updateUserMetadata(userId, {
+      publicMetadata: { onboardingComplete: true },
+    });
+    console.log("complete-onboarding: metadata updated for", userId);
+  } catch (e) {
+    console.error("complete-onboarding: updateUserMetadata failed:", e);
+    return NextResponse.json({ error: "Failed to update metadata" }, { status: 500 });
+  }
 
   return NextResponse.json({ success: true });
 }

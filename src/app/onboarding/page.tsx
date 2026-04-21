@@ -96,25 +96,47 @@ export default function OnboardingPage() {
     setSubmitting(true);
     setError(null);
 
-    const [profileRes, projectRes] = await Promise.all([
-      upsertAgencyProfile(user.id, agencyName.trim(), country, clientsCount),
-      createProject(
+    console.log("Step 1: Starting onboarding completion");
+
+    try {
+      console.log("Step 2: Upserting agency profile...");
+      const profileRes = await upsertAgencyProfile(user.id, agencyName.trim(), country, clientsCount);
+      console.log("profileRes:", profileRes);
+
+      console.log("Step 3: Creating project...");
+      const projectRes = await createProject(
         clientName.trim(),
         clientIndustry.trim() ? `${clientIndustry.trim()} — ${clientTone} — ${clientLanguage}` : "",
         user.id,
         "",
-      ),
-    ]);
+      );
+      console.log("projectRes:", projectRes);
 
-    if (profileRes.error || projectRes.error) {
-      setError(profileRes.error ?? projectRes.error);
+      if (profileRes.error || projectRes.error) {
+        const errMsg = profileRes.error ?? projectRes.error;
+        console.error("Supabase error:", errMsg);
+        setError(errMsg);
+        setSubmitting(false);
+        return;
+      }
+    } catch (e) {
+      console.error("Supabase operations failed:", e);
+      setError("حدث خطأ أثناء حفظ البيانات");
       setSubmitting(false);
       return;
     }
 
-    // Mark onboarding complete in Clerk metadata → middleware won't redirect back
-    await fetch("/api/complete-onboarding", { method: "POST" });
+    console.log("Step 4: Calling complete-onboarding API...");
+    try {
+      const apiRes = await fetch("/api/complete-onboarding", { method: "POST" });
+      const apiJson = await apiRes.json();
+      console.log("complete-onboarding response:", apiJson);
+    } catch (e) {
+      console.error("complete-onboarding failed:", e);
+      // redirect بغض النظر
+    }
 
+    console.log("Step 5: Redirecting to dashboard...");
     router.push("/dashboard");
   }
 
