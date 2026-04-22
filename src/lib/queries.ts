@@ -176,6 +176,15 @@ export async function upsertProfile(
   return { error: error?.message ?? null };
 }
 
+export async function hasCompletedOnboarding(userId: string): Promise<boolean> {
+  const { data } = await supabase
+    .from("profiles")
+    .select("agency_name")
+    .eq("clerk_id", userId)
+    .maybeSingle();
+  return !!data?.agency_name;
+}
+
 export async function upsertAgencyProfile(
   userId: string,
   agencyName: string,

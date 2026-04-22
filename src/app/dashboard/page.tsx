@@ -8,7 +8,7 @@ import DashboardStats from "@/components/dashboard/DashboardStats";
 import ProjectCard, { type Project } from "@/components/dashboard/ProjectCard";
 import NewProjectModal from "@/components/dashboard/NewProjectModal";
 import LibraryTab from "@/components/dashboard/LibraryTab";
-import { getProjects } from "@/lib/queries";
+import { getProjects, hasCompletedOnboarding } from "@/lib/queries";
 import { Plus, AlertCircle, LayoutGrid, Library, Wallet } from "lucide-react";
 
 export default function DashboardPage() {
@@ -18,6 +18,14 @@ export default function DashboardPage() {
   const [error, setError]           = useState<string | null>(null);
   const [showModal, setShowModal]   = useState(false);
   const [activeTab, setActiveTab]   = useState<"projects" | "library">("projects");
+
+  // فحص onboarding عبر Supabase (لا يعتمد على Clerk JWT cache)
+  useEffect(() => {
+    if (!user) return;
+    hasCompletedOnboarding(user.id).then((done) => {
+      if (!done) window.location.href = "/onboarding";
+    });
+  }, [user]);
 
   async function load() {
     setLoading(true);

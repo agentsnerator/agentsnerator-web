@@ -1,37 +1,29 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
-const isPublicRoute    = createRouteMatcher(["/", "/sign-in(.*)", "/sign-up(.*)"]);
-const isOnboardingRoute = createRouteMatcher(["/onboarding"]);
-const isApiRoute        = createRouteMatcher(["/api(.*)"]);
+const isPublicRoute = createRouteMatcher([
+  "/",
+  "/sign-in(.*)",
+  "/sign-up(.*)",
+  "/onboarding(.*)",
+  "/api/complete-onboarding",
+]);
 
 export default clerkMiddleware(async (auth, req) => {
-  const { userId, sessionClaims } = await auth();
-
-  // API routes — just protect, no redirects
-  if (isApiRoute(req)) {
-    if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    return NextResponse.next();
-  }
-
-  // مسجّل + public route → dashboard
-  if (userId && isPublicRoute(req)) {
-    return NextResponse.redirect(new URL("/dashboard", req.url));
-  }
-
-  // مسجّل + ليس public + ليس onboarding
-  if (userId && !isPublicRoute(req) && !isOnboardingRoute(req)) {
-    // إذا لم يكمل onboarding → أرسله لـ onboarding
-    const onboardingComplete =
-      (sessionClaims?.metadata as Record<string, unknown> | undefined)?.onboardingComplete;
-    if (!onboardingComplete) {
-      return NextResponse.redirect(new URL("/onboarding", req.url));
-    }
-  }
+  const { userId } = await auth();
 
   // غير مسجّل + protected route → sign-in
   if (!userId && !isPublicRoute(req)) {
     return NextResponse.redirect(new URL("/sign-in", req.url));
+  }
+
+  // مسجّل + يحاول يدخل sign-in أو sign-up → dashboard
+  if (
+    userId &&
+    (req.nextUrl.pathname.startsWith("/sign-in") ||
+      req.nextUrl.pathname.startsWith("/sign-up"))
+  ) {
+    return NextResponse.redirect(new URL("/dashboard", req.url));
   }
 
   return NextResponse.next();

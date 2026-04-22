@@ -126,17 +126,7 @@ export default function OnboardingPage() {
       return;
     }
 
-    console.log("Step 4: Calling complete-onboarding API...");
-    try {
-      const apiRes = await fetch("/api/complete-onboarding", { method: "POST" });
-      const apiJson = await apiRes.json();
-      console.log("complete-onboarding response:", apiJson);
-    } catch (e) {
-      console.error("complete-onboarding failed:", e);
-      // redirect بغض النظر
-    }
-
-    console.log("Step 5: Redirecting to dashboard...");
+    console.log("Step 4: Redirecting to dashboard...");
     window.location.href = "/dashboard";
   }
 
