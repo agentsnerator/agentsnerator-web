@@ -28,14 +28,15 @@ export default function DashboardPage() {
   }, [user]);
 
   async function load() {
+    if (!user) return;
     setLoading(true);
-    const { data, error } = await getProjects();
+    const { data, error } = await getProjects(user.id);
     setProjects(data);
     setError(error);
     setLoading(false);
   }
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); }, [user]);
 
   const TAB_ICONS = {
     projects: <LayoutGrid size={16} />,

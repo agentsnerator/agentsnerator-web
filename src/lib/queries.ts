@@ -35,16 +35,22 @@ function toAgent(row: any): Agent {
   };
 }
 
-// ─── Fetch all projects (with agent count) ────────────────────────────────────
-export async function getProjects(): Promise<{
+// ─── Fetch projects for a specific user ───────────────────────────────────────
+export async function getProjects(userId?: string): Promise<{
   data: Project[];
   error: string | null;
 }> {
-  // 1. Fetch projects
-  const { data: projects, error: pErr } = await supabase
+  // 1. Fetch projects filtered by owner_clerk_id
+  let query = supabase
     .from("projects")
     .select("*")
     .order("created_at", { ascending: false });
+
+  if (userId) {
+    query = query.eq("owner_clerk_id", userId);
+  }
+
+  const { data: projects, error: pErr } = await query;
 
   if (pErr) return { data: [], error: pErr.message };
   if (!projects?.length) return { data: [], error: null };
