@@ -4,7 +4,7 @@ import { useUser } from '@clerk/nextjs';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import { ArrowRight, CheckCircle } from 'lucide-react';
+import { ArrowRight, CheckCircle, AlertCircle } from 'lucide-react';
 
 const AGENT_TYPES = [
   { type: 'social',  label: 'Social Media',   icon: '📱' },
@@ -23,7 +23,8 @@ export default function NewClientPage() {
   const [industry, setIndustry] = useState('');
   const [selectedAgents, setSelectedAgents] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
-  const [success, setSuccess] = useState(false);
+  const [savedClientId, setSavedClientId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const toggleAgent = (type: string) => {
     setSelectedAgents(prev =>
@@ -34,10 +35,11 @@ export default function NewClientPage() {
   const handleSave = async () => {
     if (!name.trim() || !user || saving) return;
     setSaving(true);
+    setError(null);
 
     const supabase = createClient();
 
-    const { data: client, error } = await supabase
+    const { data: client, error: insertError } = await supabase
       .from('clients')
       .insert({
         agency_clerk_id: user.id,
@@ -47,7 +49,8 @@ export default function NewClientPage() {
       .select('id')
       .single();
 
-    if (error || !client) {
+    if (insertError || !client) {
+      setError(insertError?.message || 'فشل الحفظ — حاول مرة أخرى');
       setSaving(false);
       return;
     }
@@ -58,22 +61,52 @@ export default function NewClientPage() {
       );
     }
 
-    setSuccess(true);
-    setTimeout(() => {
-      router.push(`/dashboard/clients/${client.id}`);
-    }, 1500);
+    setSavedClientId(client.id);
+    setSaving(false);
   };
 
+  const handleAddAnother = () => {
+    setName('');
+    setIndustry('');
+    setSelectedAgents([]);
+    setSavedClientId(null);
+    setError(null);
+  };
+
+  // ── Success State ──────────────────────────────────────
+  if (savedClientId) {
+    return (
+      <div className="max-w-xl mx-auto px-4 py-20 text-center">
+        <CheckCircle size={56} className="mx-auto text-green-500 mb-4" />
+        <h2 className="text-2xl font-bold text-white mb-2">تم إضافة العميل ✅</h2>
+        <p className="text-gray-500 text-sm mb-8">يمكنك الآن إدارة وكلاء هذا العميل</p>
+        <div className="flex flex-col gap-3">
+          <button
+            onClick={() => router.push(`/dashboard/clients/${savedClientId}`)}
+            className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg font-medium transition"
+          >
+            عرض صفحة العميل →
+          </button>
+          <button
+            onClick={handleAddAnother}
+            className="w-full border border-gray-700 hover:border-gray-500 text-gray-400 hover:text-white py-3 rounded-lg font-medium transition"
+          >
+            + إضافة عميل آخر
+          </button>
+          <button
+            onClick={() => router.push('/dashboard')}
+            className="text-gray-600 hover:text-gray-400 text-sm py-2 transition"
+          >
+            تخطي — العودة للرئيسية
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Form State ─────────────────────────────────────────
   return (
     <div className="max-w-xl mx-auto px-4 py-10">
-      {/* Toast */}
-      {success && (
-        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 bg-green-600 text-white px-5 py-3 rounded-xl shadow-lg animate-fade-in">
-          <CheckCircle size={18} />
-          تم إضافة العميل بنجاح ✅
-        </div>
-      )}
-
       <button
         onClick={() => router.back()}
         className="flex items-center gap-1 text-gray-500 hover:text-white text-sm mb-6 transition"
@@ -82,6 +115,13 @@ export default function NewClientPage() {
       </button>
 
       <h1 className="text-2xl font-bold text-white mb-8">إضافة عميل جديد</h1>
+
+      {error && (
+        <div className="flex items-center gap-2 bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-lg mb-5 text-sm">
+          <AlertCircle size={16} />
+          {error}
+        </div>
+      )}
 
       <div className="space-y-5">
         <div>
@@ -108,7 +148,7 @@ export default function NewClientPage() {
 
         <div>
           <label className="block text-sm text-gray-400 mb-1">الوكلاء المفعّلون</label>
-          <p className="text-xs text-gray-600 mb-3">اختياري — يمكنك تفعيل وكلاء إضافيين لاحقاً من صفحة العميل</p>
+          <p className="text-xs text-gray-600 mb-3">اختياري — يمكن تفعيلهم لاحقاً من صفحة العميل</p>
           <div className="grid grid-cols-2 gap-2">
             {AGENT_TYPES.map(a => (
               <button
