@@ -63,9 +63,17 @@ export default function ClientPage() {
         <ArrowRight size={14} /> رجوع للعملاء
       </button>
 
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-white">{client.name}</h1>
-        {client.industry && <p className="text-gray-500 text-sm mt-1">{client.industry}</p>}
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-2xl font-bold text-white">{client.name}</h1>
+          {client.industry && <p className="text-gray-500 text-sm mt-1">{client.industry}</p>}
+        </div>
+        <button
+          onClick={() => router.push(`/dashboard/clients/${id}/edit`)}
+          className="text-sm text-gray-500 hover:text-white border border-gray-700 hover:border-gray-500 px-3 py-1.5 rounded-lg transition"
+        >
+          تعديل التفاصيل
+        </button>
       </div>
 
       <div className="grid gap-3">
