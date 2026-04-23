@@ -4,7 +4,7 @@ import { useUser } from '@clerk/nextjs';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, CheckCircle } from 'lucide-react';
 
 const AGENT_TYPES = [
   { type: 'social',  label: 'Social Media',   icon: '📱' },
@@ -21,8 +21,9 @@ export default function NewClientPage() {
   const router = useRouter();
   const [name, setName] = useState('');
   const [industry, setIndustry] = useState('');
-  const [selectedAgents, setSelectedAgents] = useState<string[]>(['social']);
+  const [selectedAgents, setSelectedAgents] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
+  const [success, setSuccess] = useState(false);
 
   const toggleAgent = (type: string) => {
     setSelectedAgents(prev =>
@@ -31,17 +32,25 @@ export default function NewClientPage() {
   };
 
   const handleSave = async () => {
-    if (!name.trim() || !user) return;
+    if (!name.trim() || !user || saving) return;
     setSaving(true);
+
     const supabase = createClient();
 
     const { data: client, error } = await supabase
       .from('clients')
-      .insert({ agency_clerk_id: user.id, name: name.trim(), industry: industry.trim() || null })
+      .insert({
+        agency_clerk_id: user.id,
+        name: name.trim(),
+        industry: industry.trim() || null,
+      })
       .select('id')
       .single();
 
-    if (error || !client) { setSaving(false); return; }
+    if (error || !client) {
+      setSaving(false);
+      return;
+    }
 
     if (selectedAgents.length > 0) {
       await supabase.from('client_agents').insert(
@@ -49,12 +58,26 @@ export default function NewClientPage() {
       );
     }
 
-    router.push(`/dashboard/clients/${client.id}`);
+    setSuccess(true);
+    setTimeout(() => {
+      router.push(`/dashboard/clients/${client.id}`);
+    }, 1500);
   };
 
   return (
     <div className="max-w-xl mx-auto px-4 py-10">
-      <button onClick={() => router.back()} className="flex items-center gap-1 text-gray-500 hover:text-white text-sm mb-6 transition">
+      {/* Toast */}
+      {success && (
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 bg-green-600 text-white px-5 py-3 rounded-xl shadow-lg animate-fade-in">
+          <CheckCircle size={18} />
+          تم إضافة العميل بنجاح ✅
+        </div>
+      )}
+
+      <button
+        onClick={() => router.back()}
+        className="flex items-center gap-1 text-gray-500 hover:text-white text-sm mb-6 transition"
+      >
         <ArrowRight size={14} /> رجوع
       </button>
 
@@ -67,7 +90,8 @@ export default function NewClientPage() {
             value={name}
             onChange={e => setName(e.target.value)}
             placeholder="مثال: مطعم العافية"
-            className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-600 focus:outline-none focus:border-purple-500"
+            disabled={saving}
+            className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-600 focus:outline-none focus:border-purple-500 disabled:opacity-50"
           />
         </div>
 
@@ -77,17 +101,20 @@ export default function NewClientPage() {
             value={industry}
             onChange={e => setIndustry(e.target.value)}
             placeholder="مثال: مطاعم، عقارات، تجزئة..."
-            className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-600 focus:outline-none focus:border-purple-500"
+            disabled={saving}
+            className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-600 focus:outline-none focus:border-purple-500 disabled:opacity-50"
           />
         </div>
 
         <div>
-          <label className="block text-sm text-gray-400 mb-3">الوكلاء المفعّلون</label>
+          <label className="block text-sm text-gray-400 mb-1">الوكلاء المفعّلون</label>
+          <p className="text-xs text-gray-600 mb-3">اختياري — يمكنك تفعيل وكلاء إضافيين لاحقاً من صفحة العميل</p>
           <div className="grid grid-cols-2 gap-2">
             {AGENT_TYPES.map(a => (
               <button
                 key={a.type}
                 onClick={() => toggleAgent(a.type)}
+                disabled={saving}
                 className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border text-sm transition ${
                   selectedAgents.includes(a.type)
                     ? 'border-purple-500 bg-purple-500/10 text-white'
@@ -108,6 +135,10 @@ export default function NewClientPage() {
         >
           {saving ? 'جاري الحفظ...' : 'إنشاء العميل'}
         </button>
+
+        <p className="text-center text-xs text-gray-600">
+          يمكنك تعبئة تفاصيل العميل وتفعيل الوكلاء بعد الإنشاء
+        </p>
       </div>
     </div>
   );
