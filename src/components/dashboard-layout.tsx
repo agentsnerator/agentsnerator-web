@@ -53,7 +53,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             onClick={() => setExpanded(p => !p)}
             className="flex items-center justify-between w-full px-2 py-1 text-xs text-gray-500 hover:text-gray-300 mb-1 transition"
           >
-            <span>العملاء</span>
+            <span>العملاء ({clients.length}/15)</span>
             {expanded ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
           </button>
 
