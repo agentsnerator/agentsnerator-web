@@ -21,8 +21,17 @@ interface SocialPost {
 
 function CopyButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false);
-  const copy = () => {
-    navigator.clipboard.writeText(text);
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      const el = document.createElement('textarea');
+      el.value = text;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+    }
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -40,44 +49,58 @@ function SocialOutput({ data }: { data: any }) {
     posts = parsed.posts || [];
   } catch { return <pre className="text-white text-sm whitespace-pre-wrap">{JSON.stringify(data, null, 2)}</pre>; }
 
+  const allText = posts.map(p =>
+    `${p.caption}\n${p.hashtags.map((h: string) => '#' + h).join(' ')}\n${p.cta}`
+  ).join('\n\n---\n\n');
+
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
-        <span className="bg-pink-500/10 text-pink-400 border border-pink-500/20 px-2 py-0.5 rounded-full text-xs">
-          {data.platform || 'Instagram'}
-        </span>
-        <span>{posts.length} منشورات</span>
-      </div>
-      {posts.map((post) => (
-        <div key={post.number} className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
-          {post.image_url && (
-            <img
-              src={post.image_url}
-              alt={post.image_suggestion}
-              className="w-full h-48 object-cover"
-              onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
-            />
-          )}
-          <div className="p-4 space-y-3">
-            <div className="flex items-start justify-between gap-2">
-              <p className="text-white text-sm leading-relaxed flex-1">{post.caption}</p>
-              <CopyButton text={post.caption} />
-            </div>
-            {post.hashtags?.length > 0 && (
-              <div className="flex flex-wrap gap-1">
-                {post.hashtags.map((tag: string) => (
-                  <span key={tag} className="text-xs text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-full">
-                    #{tag}
-                  </span>
-                ))}
-              </div>
-            )}
-            {post.cta && (
-              <p className="text-xs text-gray-500 border-t border-gray-800 pt-2">📢 {post.cta}</p>
-            )}
-          </div>
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-2 text-sm text-gray-500">
+          <span className="bg-pink-500/10 text-pink-400 border border-pink-500/20 px-2 py-0.5 rounded-full text-xs">
+            {data.platform || 'Instagram'}
+          </span>
+          <span>{posts.length} منشورات</span>
         </div>
-      ))}
+        <div className="flex items-center gap-1 text-xs text-gray-500">
+          <span>نسخ الكل</span>
+          <CopyButton text={allText} />
+        </div>
+      </div>
+      {posts.map((post) => {
+        const hashtags = post.hashtags?.map((h: string) => '#' + h).join(' ') || '';
+        const fullText = [post.caption, hashtags, post.cta].filter(Boolean).join('\n');
+        return (
+          <div key={post.number} className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+            {post.image_url && (
+              <img
+                src={post.image_url}
+                alt={post.image_suggestion}
+                className="w-full h-48 object-cover"
+                onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
+              />
+            )}
+            <div className="p-4 space-y-3">
+              <div className="flex items-start justify-between gap-2">
+                <p className="text-white text-sm leading-relaxed flex-1">{post.caption}</p>
+                <CopyButton text={fullText} />
+              </div>
+              {post.hashtags?.length > 0 && (
+                <div className="flex flex-wrap gap-1">
+                  {post.hashtags.map((tag: string) => (
+                    <span key={tag} className="text-xs text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-full">
+                      #{tag}
+                    </span>
+                  ))}
+                </div>
+              )}
+              {post.cta && (
+                <p className="text-xs text-gray-500 border-t border-gray-800 pt-2">📢 {post.cta}</p>
+              )}
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }
