@@ -49,8 +49,8 @@ function SocialOutput({ data }: { data: any }) {
     posts = parsed.posts || [];
   } catch { return <pre className="text-white text-sm whitespace-pre-wrap">{JSON.stringify(data, null, 2)}</pre>; }
 
-  const allText = posts.map(p =>
-    `${p.caption}\n${p.hashtags.map((h: string) => '#' + h).join(' ')}\n${p.cta}`
+  const allText = posts.map((p, i) =>
+    `[بوست ${i + 1}]\n${p.caption}\n${p.hashtags?.map((h: string) => '#' + h).join(' ') || ''}\n${p.cta}`
   ).join('\n\n---\n\n');
 
   return (
@@ -177,7 +177,12 @@ export default function AgentRunPage() {
     setResult(null);
     setError(null);
     try {
-      const res = await fetch(`${N8N_BASE}${template.webhook}`, {
+      const isNewRoute = type === 'social';
+      const url = isNewRoute
+        ? '/api/agents/social'
+        : `${N8N_BASE}${template.webhook}`;
+
+      const res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
